@@ -61,7 +61,7 @@ Pop an item:
 ```go
 item, err := s.Pop()
 ...
-fmt.Println(item.Id) // 1
+fmt.Println(item.ID) // 1
 fmt.Println(item.Key) // [0 0 0 0 0 0 0 1]
 fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString) // item value
@@ -74,7 +74,7 @@ item, err := s.Peek()
 ...
 item, err := s.PeekByOffset(1)
 ...
-item, err := s.PeekById(1)
+item, err := s.PeekByID(1)
 ...
 ```
 
@@ -128,7 +128,7 @@ Dequeue an item:
 ```go
 item, err := q.Dequeue()
 ...
-fmt.Println(item.Id) // 1
+fmt.Println(item.ID) // 1
 fmt.Println(item.Key) // [0 0 0 0 0 0 0 1]
 fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString) // item value
@@ -141,7 +141,7 @@ item, err := q.Peek()
 ...
 item, err := q.PeekByOffset(1)
 ...
-item, err := q.PeekById(1)
+item, err := q.PeekByID(1)
 ...
 ```
 
