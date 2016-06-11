@@ -11,17 +11,6 @@ type Item struct {
 	Value []byte
 }
 
-// NewItem creates a new item for use with a stack or queue.
-func NewItem(value []byte) *Item {
-	return &Item{Value: value}
-}
-
-// NewItemString is a helper function for NewItem that accepts a
-// value as a string rather than a byte slice.
-func NewItemString(value string) *Item {
-	return NewItem([]byte(value))
-}
-
 // ToString returns the item value as a string.
 func (i *Item) ToString() string {
 	return string(i.Value)
@@ -37,6 +26,17 @@ type PriorityItem struct {
 
 // ToString returns the item value as a string.
 //func (pi *PriorityItem) ToString() string {}
+
+// NewItem creates a new item for use with a stack or queue.
+func NewItem(value []byte) *Item {
+	return &Item{Value: value}
+}
+
+// NewItemString is a helper function for NewItem that accepts a
+// value as a string rather than a byte slice.
+func NewItemString(value string) *Item {
+	return NewItem([]byte(value))
+}
 
 // idToKey converts and returns the given ID to a key.
 func idToKey(id uint64) []byte {
