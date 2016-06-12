@@ -1,4 +1,4 @@
-# Goque [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/beeker1121/goque) [![License](http://img.shields.io/badge/license-mit-blue.svg)](https://raw.githubusercontent.com/beeker1121/goque/master/LICENSE) ![Credz](https://img.shields.io/badge/credz-_syndtr_connor4312_bwmarrin_zeroZshadow-red.svg)
+# Goque [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/beeker1121/goque) [![License](http://img.shields.io/badge/license-mit-blue.svg)](https://raw.githubusercontent.com/beeker1121/goque/master/LICENSE) [![GoReport](http://img.shields.io/badge/go_report-A+-brightgreen.svg)](https://goreportcard.com/report/github.com/beeker1121/goque)
 
 Goque provides embedded, disk-based implementations of stack, queue, and priority queue data structures.
 
@@ -160,3 +160,10 @@ Delete the queue and underlying database:
 ```go
 q.Drop()
 ```
+
+## Thanks
+
+syndtr ([https://github.com/syndtr](https://github.com/syndtr)) - Porting LevelDB to Go
+connor4312 ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure
+bwmarrin ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB
+zeroZshadow ([https://github.com/zeroZshadow](https://github.com/zeroZshadow)) - Code review and optimization
