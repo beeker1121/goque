@@ -327,6 +327,8 @@ func BenchmarkQueueDequeue(b *testing.B) {
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		_, _ = q.Dequeue()
+		if _, err := q.Dequeue(); err != nil {
+			b.Error(err)
+		}
 	}
 }

@@ -327,6 +327,8 @@ func BenchmarkStackPop(b *testing.B) {
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		_, _ = s.Pop()
+		if _, err := s.Pop(); err != nil {
+			b.Error(err)
+		}
 	}
 }
