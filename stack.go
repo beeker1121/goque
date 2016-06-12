@@ -48,13 +48,13 @@ func (s *Stack) Push(item *Item) error {
 	defer s.Unlock()
 
 	// Set item ID and key.
-	item.ID = s.tail + 1
+	item.ID = s.head + 1
 	item.Key = idToKey(item.ID)
 
 	// Add it to the stack.
 	err := s.db.Put(item.Key, item.Value, nil)
 	if err == nil {
-		s.tail++
+		s.head++
 	}
 
 	return err
@@ -66,7 +66,7 @@ func (s *Stack) Pop() (*Item, error) {
 	defer s.Unlock()
 
 	// Try to get the next item in the stack.
-	item, err := s.getItemByID(s.tail)
+	item, err := s.getItemByID(s.head)
 	if err != nil {
 		return item, err
 	}
@@ -77,7 +77,7 @@ func (s *Stack) Pop() (*Item, error) {
 	}
 
 	// Decrement position.
-	s.tail--
+	s.head--
 
 	return item, nil
 }
@@ -86,7 +86,7 @@ func (s *Stack) Pop() (*Item, error) {
 func (s *Stack) Peek() (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
-	return s.getItemByID(s.tail)
+	return s.getItemByID(s.head)
 }
 
 // PeekByOffset returns the item located at the given offset,
@@ -94,7 +94,7 @@ func (s *Stack) Peek() (*Item, error) {
 func (s *Stack) PeekByOffset(offset uint64) (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
-	return s.getItemByID(s.tail - offset)
+	return s.getItemByID(s.head - offset)
 }
 
 // PeekByID returns the item with the given ID without removing it.
@@ -120,7 +120,7 @@ func (s *Stack) UpdateString(item *Item, newValue string) error {
 
 // Length returns the total number of items currently in the stack.
 func (s *Stack) Length() uint64 {
-	return s.tail - s.head
+	return s.head - s.tail
 }
 
 // Drop closes and deletes the LevelDB database of the stack.
@@ -145,7 +145,7 @@ func (s *Stack) getItemByID(id uint64) (*Item, error) {
 	// Check if empty or out of bounds.
 	if s.Length() < 1 {
 		return nil, ErrEmpty
-	} else if id <= s.head || id > s.tail {
+	} else if id <= s.tail || id > s.head {
 		return nil, ErrOutOfBounds
 	}
 
@@ -162,16 +162,16 @@ func (s *Stack) init() error {
 	iter := s.db.NewIterator(nil, nil)
 	defer iter.Release()
 
-	// Set stack head to the first item.
-	if iter.First() {
-		s.head = keyToID(iter.Key()) - 1
+	// Set stack head to the last item.
+	if iter.Last() {
+		s.head = keyToID(iter.Key())
 	} else {
 		s.head = 0
 	}
 
-	// Set stack tail to the last item.
-	if iter.Last() {
-		s.tail = keyToID(iter.Key())
+	// Set stack tail to the first item.
+	if iter.First() {
+		s.tail = keyToID(iter.Key()) - 1
 	} else {
 		s.tail = 0
 	}
