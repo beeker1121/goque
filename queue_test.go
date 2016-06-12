@@ -55,7 +55,7 @@ func TestQueueDequeue(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := q.Enqueue(item); err != nil {
+		if err = q.Enqueue(item); err != nil {
 			t.Error(err)
 		}
 	}
@@ -90,7 +90,7 @@ func TestQueuePeek(t *testing.T) {
 
 	compStr := "value for item"
 
-	if err := q.Enqueue(NewItemString(compStr)); err != nil {
+	if err = q.Enqueue(NewItemString(compStr)); err != nil {
 		t.Error(err)
 	}
 
@@ -114,7 +114,7 @@ func TestQueuePeekByOffset(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := q.Enqueue(item); err != nil {
+		if err = q.Enqueue(item); err != nil {
 			t.Error(err)
 		}
 	}
@@ -141,7 +141,7 @@ func TestQueuePeekByID(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := q.Enqueue(item); err != nil {
+		if err = q.Enqueue(item); err != nil {
 			t.Error(err)
 		}
 	}
@@ -168,7 +168,7 @@ func TestQueueUpdate(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := q.Enqueue(item); err != nil {
+		if err = q.Enqueue(item); err != nil {
 			t.Error(err)
 		}
 	}
@@ -185,7 +185,7 @@ func TestQueueUpdate(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
 	}
 
-	if err := q.Update(item, []byte(newCompStr)); err != nil {
+	if err = q.Update(item, []byte(newCompStr)); err != nil {
 		t.Error(err)
 	}
 
@@ -213,7 +213,7 @@ func TestQueueUpdateString(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := q.Enqueue(item); err != nil {
+		if err = q.Enqueue(item); err != nil {
 			t.Error(err)
 		}
 	}
@@ -230,7 +230,7 @@ func TestQueueUpdateString(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
 	}
 
-	if err := q.UpdateString(item, newCompStr); err != nil {
+	if err = q.UpdateString(item, newCompStr); err != nil {
 		t.Error(err)
 	}
 
@@ -292,6 +292,7 @@ func TestQueueOutOfBounds(t *testing.T) {
 }
 
 func BenchmarkQueueEnqueue(b *testing.B) {
+	// Open test database
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	q, err := OpenQueue(file)
 	if err != nil {
@@ -299,16 +300,19 @@ func BenchmarkQueueEnqueue(b *testing.B) {
 	}
 	defer q.Drop()
 
+	// Create dummy data for pushing
+	item := NewItemString("value")
+
 	b.ResetTimer()
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
-		if err := q.Enqueue(NewItemString("value")); err != nil {
-			b.Error(err)
-		}
+		_ = q.Enqueue(item)
 	}
 }
 
 func BenchmarkQueueDequeue(b *testing.B) {
+	// Open test database
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	q, err := OpenQueue(file)
 	if err != nil {
@@ -316,15 +320,17 @@ func BenchmarkQueueDequeue(b *testing.B) {
 	}
 	defer q.Drop()
 
+	// Fill with dummy data
+	item := NewItemString("value")
 	for n := 0; n < b.N; n++ {
-		for i := 1; i <= 10; i++ {
-			if err := q.Enqueue(NewItemString("value")); err != nil {
-				b.Error(err)
-			}
+		if err := q.Enqueue(item); err != nil {
+			b.Error(err)
 		}
 	}
 
+	// Start benchmark
 	b.ResetTimer()
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		_, _ = q.Dequeue()
