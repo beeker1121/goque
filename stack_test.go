@@ -14,13 +14,13 @@ func TestStackDrop(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := os.Stat(file); os.IsNotExist(err) {
+	if _, err = os.Stat(file); os.IsNotExist(err) {
 		t.Error(err)
 	}
 
 	s.Drop()
 
-	if _, err := os.Stat(file); err == nil {
+	if _, err = os.Stat(file); err == nil {
 		t.Error("Expected directory for test database to have been deleted")
 	}
 }
@@ -35,7 +35,7 @@ func TestStackPush(t *testing.T) {
 
 	for i := 1; i <= 10; i++ {
 		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err := s.Push(item); err != nil {
+		if err = s.Push(item); err != nil {
 			t.Error(err)
 		}
 	}
