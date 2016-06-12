@@ -163,7 +163,7 @@ q.Drop()
 
 ## Thanks
 
-syndtr ([https://github.com/syndtr](https://github.com/syndtr)) - Porting LevelDB to Go  
-connor4312 ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure  
-bwmarrin ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB  
-zeroZshadow ([https://github.com/zeroZshadow](https://github.com/zeroZshadow)) - Code review and optimization  
+**syndtr** ([https://github.com/syndtr](https://github.com/syndtr)) - Porting LevelDB to Go  
+**connor4312** ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure  
+**bwmarrin** ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB  
+**zeroZshadow** ([https://github.com/zeroZshadow](https://github.com/zeroZshadow)) - Code review and optimization  
