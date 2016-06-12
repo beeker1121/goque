@@ -291,13 +291,15 @@ func TestStackOutOfBounds(t *testing.T) {
 	}
 }
 
-func BenchmarkStackEnqueue(b *testing.B) {
+func BenchmarkStackPush(b *testing.B) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	s, err := OpenStack(file)
 	if err != nil {
 		b.Error(err)
 	}
 	defer s.Drop()
+
+	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
 		if err := s.Push(NewItemString("value")); err != nil {
@@ -306,7 +308,7 @@ func BenchmarkStackEnqueue(b *testing.B) {
 	}
 }
 
-func BenchmarkStackDequeue(b *testing.B) {
+func BenchmarkStackPop(b *testing.B) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	s, err := OpenStack(file)
 	if err != nil {

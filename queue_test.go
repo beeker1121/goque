@@ -299,6 +299,8 @@ func BenchmarkQueueEnqueue(b *testing.B) {
 	}
 	defer q.Drop()
 
+	b.ResetTimer()
+
 	for n := 0; n < b.N; n++ {
 		if err := q.Enqueue(NewItemString("value")); err != nil {
 			b.Error(err)
