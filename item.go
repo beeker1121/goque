@@ -35,8 +35,21 @@ type PriorityItem struct {
 	Value    []byte
 }
 
-// ToString returns the item value as a string.
-//func (pi *PriorityItem) ToString() string {}
+// NewPriorityItem creates a new item for use with a priority queue.
+func NewPriorityItem(value []byte, priority uint8) *PriorityItem {
+	return &PriorityItem{Priority: priority, Value: value}
+}
+
+// NewPriorityItemString is a helper function for NewPriorityItem
+// that accepts a value as a string rather than a byte slice.
+func NewPriorityItemString(value string, priority uint8) *PriorityItem {
+	return NewPriorityItem([]byte(value), priority)
+}
+
+// ToString returns the priority item value as a string.
+func (pi *PriorityItem) ToString() string {
+	return string(pi.Value)
+}
 
 // idToKey converts and returns the given ID to a key.
 func idToKey(id uint64) []byte {

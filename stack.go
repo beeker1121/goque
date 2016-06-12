@@ -37,7 +37,7 @@ func OpenStack(dataDir string) (*Stack, error) {
 		return s, err
 	}
 
-	// Set stack isOpen and return.
+	// Set isOpen and return.
 	s.isOpen = true
 	return s, s.init()
 }
@@ -118,15 +118,9 @@ func (s *Stack) UpdateString(item *Item, newValue string) error {
 	return s.Update(item, []byte(newValue))
 }
 
-// Length returns the total number of items currently in the stack.
+// Length returns the total number of items in the stack.
 func (s *Stack) Length() uint64 {
 	return s.head - s.tail
-}
-
-// Drop closes and deletes the LevelDB database of the stack.
-func (s *Stack) Drop() {
-	s.Close()
-	os.RemoveAll(s.DataDir)
 }
 
 // Close closes the LevelDB database of the stack.
@@ -138,6 +132,12 @@ func (s *Stack) Close() {
 
 	s.db.Close()
 	s.isOpen = false
+}
+
+// Drop closes and deletes the LevelDB database of the stack.
+func (s *Stack) Drop() {
+	s.Close()
+	os.RemoveAll(s.DataDir)
 }
 
 // getItemByID returns an item, if found, for the given ID.
@@ -156,7 +156,7 @@ func (s *Stack) getItemByID(id uint64) (*Item, error) {
 	return item, err
 }
 
-// Initialize the stack data.
+// init initializes the stack data.
 func (s *Stack) init() error {
 	// Create a new LevelDB Iterator.
 	iter := s.db.NewIterator(nil, nil)

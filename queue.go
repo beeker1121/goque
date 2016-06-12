@@ -37,7 +37,7 @@ func OpenQueue(dataDir string) (*Queue, error) {
 		return q, err
 	}
 
-	// Set queue isOpen and return.
+	// Set isOpen and return.
 	q.isOpen = true
 	return q, q.init()
 }
@@ -118,15 +118,9 @@ func (q *Queue) UpdateString(item *Item, newValue string) error {
 	return q.Update(item, []byte(newValue))
 }
 
-// Length returns the total number of items currently in the queue.
+// Length returns the total number of items in the queue.
 func (q *Queue) Length() uint64 {
 	return q.tail - q.head
-}
-
-// Drop closes and deletes the LevelDB database of the queue.
-func (q *Queue) Drop() {
-	q.Close()
-	os.RemoveAll(q.DataDir)
 }
 
 // Close closes the LevelDB database of the queue.
@@ -138,6 +132,12 @@ func (q *Queue) Close() {
 
 	q.db.Close()
 	q.isOpen = false
+}
+
+// Drop closes and deletes the LevelDB database of the queue.
+func (q *Queue) Drop() {
+	q.Close()
+	os.RemoveAll(q.DataDir)
 }
 
 // getItemByID returns an item, if found, for the given ID.
@@ -156,7 +156,7 @@ func (q *Queue) getItemByID(id uint64) (*Item, error) {
 	return item, err
 }
 
-// Initialize the queue data.
+// init initializes the queue data.
 func (q *Queue) init() error {
 	// Create a new LevelDB Iterator.
 	iter := q.db.NewIterator(nil, nil)
