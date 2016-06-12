@@ -44,9 +44,9 @@ defer s.Close()
 Create a new item:
 
 ```go
-item := NewItem([]byte("item value"))
+item := goque.NewItem([]byte("item value"))
 // or
-item := NewItemString("item value")
+item := goque.NewItemString("item value")
 ```
 
 Push an item:
@@ -111,9 +111,9 @@ defer q.Close()
 Create a new item:
 
 ```go
-item := NewItem([]byte("item value"))
+item := goque.NewItem([]byte("item value"))
 // or
-item := NewItemString("item value")
+item := goque.NewItemString("item value")
 ```
 
 Enqueue an item:
