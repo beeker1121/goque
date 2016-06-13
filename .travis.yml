@@ -5,5 +5,5 @@ go:
   - 1.6
   - tip
 
-  script:
-    - go test -v ./...
+script:
+  - go test -v ./...
