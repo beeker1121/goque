@@ -1,4 +1,4 @@
-# Goque [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/beeker1121/goque) [![License](http://img.shields.io/badge/license-mit-blue.svg)](https://raw.githubusercontent.com/beeker1121/goque/master/LICENSE) [![GoReport](http://img.shields.io/badge/go_report-A+-brightgreen.svg)](https://goreportcard.com/report/github.com/beeker1121/goque)
+# Goque [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/beeker1121/goque) [![License](http://img.shields.io/badge/license-mit-blue.svg)](https://raw.githubusercontent.com/beeker1121/goque/master/LICENSE) [![GoReport](http://img.shields.io/badge/go_report-A+-brightgreen.svg)](https://goreportcard.com/report/github.com/beeker1121/goque) [![Build Status](https://travis-ci.org/beeker1121/goque.svg?branch=master)](https://travis-ci.org/beeker1121/goque)
 
 Goque provides embedded, disk-based implementations of stack, queue, and priority queue data structures.
 
