@@ -175,7 +175,7 @@ func TestPriorityQueuePeek(t *testing.T) {
 	}
 }
 
-func TestPriorityQueuePeekByOffset(t *testing.T) {
+func TestPriorityQueuePeekByOffsetAsc(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
 	if err != nil {
@@ -192,7 +192,35 @@ func TestPriorityQueuePeekByOffset(t *testing.T) {
 		}
 	}
 
+	compStrFirst := "value for item 1"
+	compStrLast := "value for item 10"
 	compStr := "value for item 3"
+
+	peekFirstItem, err := pq.PeekByOffset(0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekFirstItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", peekFirstItem.Priority)
+	}
+
+	if peekFirstItem.ToString() != compStrFirst {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrFirst, peekFirstItem.ToString())
+	}
+
+	peekLastItem, err := pq.PeekByOffset(49)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekLastItem.Priority != 4 {
+		t.Errorf("Expected priority level to be 4, got %d", peekLastItem.Priority)
+	}
+
+	if peekLastItem.ToString() != compStrLast {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrLast, peekLastItem.ToString())
+	}
 
 	peekItem, err := pq.PeekByOffset(22)
 	if err != nil {

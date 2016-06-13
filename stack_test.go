@@ -128,7 +128,27 @@ func TestStackPeekByOffset(t *testing.T) {
 		}
 	}
 
+	compStrFirst := "value for item 10"
+	compStrLast := "value for item 1"
 	compStr := "value for item 7"
+
+	peekFirstItem, err := s.PeekByOffset(0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekFirstItem.ToString() != compStrFirst {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrFirst, peekFirstItem.ToString())
+	}
+
+	peekLastItem, err := s.PeekByOffset(9)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekLastItem.ToString() != compStrLast {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrLast, peekLastItem.ToString())
+	}
 
 	peekItem, err := s.PeekByOffset(3)
 	if err != nil {

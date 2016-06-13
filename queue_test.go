@@ -128,7 +128,27 @@ func TestQueuePeekByOffset(t *testing.T) {
 		}
 	}
 
+	compStrFirst := "value for item 1"
+	compStrLast := "value for item 10"
 	compStr := "value for item 4"
+
+	peekFirstItem, err := q.PeekByOffset(0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekFirstItem.ToString() != compStrFirst {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrFirst, peekFirstItem.ToString())
+	}
+
+	peekLastItem, err := q.PeekByOffset(9)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekLastItem.ToString() != compStrLast {
+		t.Errorf("Expected string to be '%s', got '%s'", compStrLast, peekLastItem.ToString())
+	}
 
 	peekItem, err := q.PeekByOffset(3)
 	if err != nil {
