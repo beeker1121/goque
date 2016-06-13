@@ -485,6 +485,88 @@ func TestPriorityQueueUpdateString(t *testing.T) {
 	}
 }
 
+func TestPriorityQueueHigherPriorityAsc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 5; p <= 9; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if item.Priority != 5 {
+		t.Errorf("Expected priority level to be 5, got %d", item.Priority)
+	}
+
+	err = pq.Enqueue(NewPriorityItemString("value", 2))
+	if err != nil {
+		t.Error(err)
+	}
+
+	higherItem, err := pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if higherItem.Priority != 2 {
+		t.Errorf("Expected priority level to be 5, got %d", higherItem.Priority)
+	}
+}
+
+func TestPriorityQueueHigherPriorityDesc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, DESC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 5; p <= 9; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if item.Priority != 9 {
+		t.Errorf("Expected priority level to be 9, got %d", item.Priority)
+	}
+
+	err = pq.Enqueue(NewPriorityItemString("value", 12))
+	if err != nil {
+		t.Error(err)
+	}
+
+	higherItem, err := pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if higherItem.Priority != 12 {
+		t.Errorf("Expected priority level to be 12, got %d", higherItem.Priority)
+	}
+}
+
 func TestPriorityQueueEmpty(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
