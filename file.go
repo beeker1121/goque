@@ -20,15 +20,15 @@ const (
 // trying to be opened is compatible with the opener type.
 //
 // A file named 'GOQUE' within the data directory used by
-// the structure stored the structure type, using the constants
+// the structure stores the structure type, using the constants
 // declared above.
 //
-// Stacks and Queues are 100% compatible with eachother, while
+// Stacks and Queues are 100% compatible with each other, while
 // a PriorityQueue is incompatible with both.
 //
 // Returns true if types are compatible and false if incompatible.
 func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
-	// Set the path and gtype byte slice used when saving to a file.
+	// Set the path and goqueType byte slice used when saving to a file.
 	path := filepath.Join(dataDir, "GOQUE")
 	gtb := make([]byte, 1)
 	gtb[0] = byte(gt)
