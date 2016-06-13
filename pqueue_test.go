@@ -8,20 +8,6 @@ import (
 	"time"
 )
 
-func TestPriorityQueueIncompatibleType(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
-	q, err := OpenQueue(file)
-	if err != nil {
-		t.Error(err)
-	}
-	defer q.Drop()
-	q.Close()
-
-	if _, err = OpenPriorityQueue(file, ASC); err != ErrIncompatibleType {
-		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening Queue")
-	}
-}
-
 func TestPriorityQueueDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
@@ -37,6 +23,20 @@ func TestPriorityQueueDrop(t *testing.T) {
 
 	if _, err = os.Stat(file); err == nil {
 		t.Error("Expected directory for test database to have been deleted")
+	}
+}
+
+func TestPriorityQueueIncompatibleType(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	q, err := OpenQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer q.Drop()
+	q.Close()
+
+	if _, err = OpenPriorityQueue(file, ASC); err != ErrIncompatibleType {
+		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening Queue")
 	}
 }
 

@@ -88,7 +88,7 @@ func (pq *PriorityQueue) Enqueue(item *PriorityItem) error {
 
 	// Set item ID and key.
 	item.ID = level.tail + 1
-	item.Key = generateKey(item.Priority, item.ID)
+	item.Key = pq.generateKey(item.Priority, item.ID)
 
 	// Add it to the priority queue.
 	err := pq.db.Put(item.Key, item.Value, nil)
@@ -339,10 +339,28 @@ func (pq *PriorityQueue) getItemByPriorityID(priority uint8, id uint64) (*Priori
 	var err error
 
 	// Create a new PriorityItem.
-	item := &PriorityItem{ID: id, Priority: priority, Key: generateKey(priority, id)}
+	item := &PriorityItem{ID: id, Priority: priority, Key: pq.generateKey(priority, id)}
 	item.Value, err = pq.db.Get(item.Key, nil)
 
 	return item, err
+}
+
+// generatePrefix creates the key prefix for the given priority level.
+func (pq *PriorityQueue) generatePrefix(level uint8) []byte {
+	// priority + prefixSep = 1 + 1 = 2
+	prefix := make([]byte, 2)
+	prefix[0] = byte(level)
+	prefix[1] = prefixSep[0]
+	return prefix
+}
+
+// generateKey create a key to be used with LevelDB.
+func (pq *PriorityQueue) generateKey(priority uint8, id uint64) []byte {
+	// prefix + key = 2 + 8 = 10
+	key := make([]byte, 10)
+	copy(key[0:2], pq.generatePrefix(priority))
+	copy(key[2:], idToKey(id))
+	return key
 }
 
 // init initializes the priority queue data.
@@ -353,7 +371,7 @@ func (pq *PriorityQueue) init() error {
 	// Loop through each priority level.
 	for i := 0; i <= 255; i++ {
 		// Create a new LevelDB Iterator for this priority level.
-		prefix := generatePrefix(uint8(i))
+		prefix := pq.generatePrefix(uint8(i))
 		iter := pq.db.NewIterator(util.BytesPrefix(prefix), nil)
 
 		// Create a new priorityLevel.
@@ -386,22 +404,4 @@ func (pq *PriorityQueue) init() error {
 	}
 
 	return nil
-}
-
-// generatePrefix creates the key prefix for the given priority level.
-func generatePrefix(level uint8) []byte {
-	// priority + prefixSep = 1 + 1 = 2
-	prefix := make([]byte, 2)
-	prefix[0] = byte(level)
-	prefix[1] = prefixSep[0]
-	return prefix
-}
-
-// generateKey create a key to be used with LevelDB.
-func generateKey(priority uint8, id uint64) []byte {
-	// prefix + key = 2 + 8 = 10
-	key := make([]byte, 10)
-	copy(key[0:2], generatePrefix(priority))
-	copy(key[2:], idToKey(id))
-	return key
 }
