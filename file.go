@@ -71,7 +71,7 @@ func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
 		return true, nil
 	} else if filegt == goqueQueue && gt == goqueStack {
 		return true, nil
-	} else {
-		return false, nil
 	}
+
+	return false, nil
 }
