@@ -403,6 +403,10 @@ func TestPriorityQueueUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
+	if item.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", item.Priority)
+	}
+
 	if item.ToString() != newCompStr {
 		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
 	}
@@ -410,6 +414,10 @@ func TestPriorityQueueUpdate(t *testing.T) {
 	newItem, err := pq.PeekByPriorityID(0, 3)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if newItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", newItem.Priority)
 	}
 
 	if newItem.ToString() != newCompStr {
@@ -450,6 +458,10 @@ func TestPriorityQueueUpdateString(t *testing.T) {
 		t.Error(err)
 	}
 
+	if item.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", item.Priority)
+	}
+
 	if item.ToString() != newCompStr {
 		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
 	}
@@ -457,6 +469,10 @@ func TestPriorityQueueUpdateString(t *testing.T) {
 	newItem, err := pq.PeekByPriorityID(0, 3)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if newItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", newItem.Priority)
 	}
 
 	if newItem.ToString() != newCompStr {
