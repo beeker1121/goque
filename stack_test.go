@@ -103,13 +103,8 @@ func TestStackPeek(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := s.Peek()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if s.Length() != 1 {
+		t.Errorf("Expected queue length of 1, got %d", s.Length())
 	}
 }
 
@@ -159,13 +154,8 @@ func TestStackPeekByOffset(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := s.PeekByOffset(3)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if s.Length() != 10 {
+		t.Errorf("Expected queue length of 10, got %d", s.Length())
 	}
 }
 
@@ -195,13 +185,8 @@ func TestStackPeekByID(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := s.PeekByID(3)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if s.Length() != 10 {
+		t.Errorf("Expected queue length of 10, got %d", s.Length())
 	}
 }
 

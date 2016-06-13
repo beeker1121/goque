@@ -203,17 +203,8 @@ func TestPriorityQueuePeek(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := pq.Peek()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.Priority != 0 {
-		t.Errorf("Expected priority level to be 0, got %d", peekItem.Priority)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
 	}
 }
 
@@ -277,17 +268,8 @@ func TestPriorityQueuePeekByOffsetAsc(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := pq.PeekByOffset(22)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.Priority != 2 {
-		t.Errorf("Expected priority level to be 2, got %d", secondPeekItem.Priority)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
 	}
 }
 
@@ -351,17 +333,8 @@ func TestPriorityQueuePeekByOffsetDesc(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := pq.PeekByOffset(32)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.Priority != 1 {
-		t.Errorf("Expected priority level to be 1, got %d", secondPeekItem.Priority)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
 	}
 }
 
@@ -397,17 +370,8 @@ func TestPriorityQueuePeekByPriorityID(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
 
-	secondPeekItem, err := pq.PeekByPriorityID(1, 3)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if secondPeekItem.Priority != 1 {
-		t.Errorf("Expected priority level to be 1, got %d", secondPeekItem.Priority)
-	}
-
-	if secondPeekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
 	}
 }
 
