@@ -45,7 +45,7 @@ Create a new item:
 
 ```go
 item := goque.NewItem([]byte("item value"))
-// or
+...
 item := goque.NewItemString("item value")
 ```
 
@@ -61,9 +61,9 @@ Pop an item:
 ```go
 item, err := s.Pop()
 ...
-fmt.Println(item.ID) // 1
-fmt.Println(item.Key) // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
+fmt.Println(item.ID)       // 1
+fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString) // item value
 ```
 
@@ -83,7 +83,6 @@ Update an item in the stack:
 ```go
 err := s.Update(item, []byte("new value"))
 ...
-// or
 err := s.UpdateString(item, "new value")
 ...
 ```
@@ -112,7 +111,7 @@ Create a new item:
 
 ```go
 item := goque.NewItem([]byte("item value"))
-// or
+...
 item := goque.NewItemString("item value")
 ```
 
@@ -128,9 +127,9 @@ Dequeue an item:
 ```go
 item, err := q.Dequeue()
 ...
-fmt.Println(item.ID) // 1
-fmt.Println(item.Key) // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
+fmt.Println(item.ID)       // 1
+fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString) // item value
 ```
 
@@ -150,7 +149,6 @@ Update an item in the queue:
 ```go
 err := q.Update(item, []byte("new value"))
 ...
-// or
 err := q.UpdateString(item, "new value")
 ...
 ```
@@ -159,6 +157,75 @@ Delete the queue and underlying database:
 
 ```go
 q.Drop()
+```
+
+### Priority Queue
+
+PriorityQueue is a FIFO (first in, first out) queue with priority levels.
+
+#### Methods
+
+Create or open a priority queue:
+
+```go
+pq, err := goque.OpenPriorityQueue("data_dir", goque.ASC)
+...
+defer pq.Close()
+```
+
+Create a new item:
+
+```go
+item := goque.NewPriorityItem([]byte("item value"), 0)
+...
+item := goque.NewPriorityItemString("item value", 0)
+```
+
+Enqueue an item:
+
+```go
+err := pq.Enqueue(item)
+...
+```
+
+Dequeue an item:
+
+```go
+item, err := pq.Dequeue()
+...
+item, err := pq.DequeueByPriority(0)
+...
+fmt.Println(item.ID)       // 1
+fmt.Println(item.Priority) // 0
+fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
+fmt.Println(item.ToString) // item value
+```
+
+Peek the next priority queue item:
+
+```go
+item, err := pq.Peek()
+...
+item, err := pq.PeekByOffset(1)
+...
+item, err := pq.PeekByPriorityID(0, 1)
+...
+```
+
+Update an item in the priority queue:
+
+```go
+err := pq.Update(item, []byte("new value"))
+...
+err := pq.UpdateString(item, "new value")
+...
+```
+
+Delete the priority queue and underlying database:
+
+```go
+pq.Drop()
 ```
 
 ## Thanks
