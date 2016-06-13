@@ -155,6 +155,21 @@ func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityI
 	return pq.getItemByPriorityID(priority, id)
 }
 
+// Update updates an item in the priority queue without changing its
+// position.
+func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
+	pq.Lock()
+	defer pq.Unlock()
+	item.Value = newValue
+	return pq.db.Put(item.Key, item.Value, nil)
+}
+
+// UpdateString is a helper function for Update that accepts a value
+// as a string rather than a byte slice.
+func (pq *PriorityQueue) UpdateString(item *PriorityItem, newValue string) error {
+	return pq.Update(item, []byte(newValue))
+}
+
 // Length returns the total number of items in the priority queue.
 func (pq *PriorityQueue) Length() uint64 {
 	var length uint64 = 0

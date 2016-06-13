@@ -2,6 +2,7 @@ package goque
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"testing"
 	"time"
@@ -366,5 +367,187 @@ func TestPriorityQueuePeekByPriorityID(t *testing.T) {
 
 	if secondPeekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	}
+}
+
+func TestPriorityQueueUpdate(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompStr := "value for item 3"
+	newCompStr := "new value for item 3"
+
+	if item.ToString() != oldCompStr {
+		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
+	}
+
+	if err = pq.Update(item, []byte(newCompStr)); err != nil {
+		t.Error(err)
+	}
+
+	if item.ToString() != newCompStr {
+		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
+	}
+
+	newItem, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if newItem.ToString() != newCompStr {
+		t.Errorf("Expected new item value to be '%s', got '%s'", newCompStr, item.ToString())
+	}
+}
+
+func TestPriorityQueueUpdateString(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompStr := "value for item 3"
+	newCompStr := "new value for item 3"
+
+	if item.ToString() != oldCompStr {
+		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
+	}
+
+	if err = pq.UpdateString(item, newCompStr); err != nil {
+		t.Error(err)
+	}
+
+	if item.ToString() != newCompStr {
+		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
+	}
+
+	newItem, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if newItem.ToString() != newCompStr {
+		t.Errorf("Expected new item value to be '%s', got '%s'", newCompStr, item.ToString())
+	}
+}
+
+func TestPriorityQueueEmpty(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	err = pq.Enqueue(NewPriorityItemString("value for item", 0))
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.Dequeue()
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+}
+
+func TestPriorityQueueOutOfBounds(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	err = pq.Enqueue(NewPriorityItemString("value for item", 0))
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(2)
+	if err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+}
+
+func BenchmarkPriorityQueueEnqueue(b *testing.B) {
+	// Open test database
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		b.Error(err)
+	}
+	defer pq.Drop()
+
+	// Create dummy data for pushing
+	item := NewPriorityItemString("value", 0)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for n := 0; n < b.N; n++ {
+		_ = pq.Enqueue(item)
+	}
+}
+
+func BenchmarkPriorityQueueDequeue(b *testing.B) {
+	// Open test database
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		b.Error(err)
+	}
+	defer pq.Drop()
+
+	// Fill with dummy data
+	for n := 0; n < b.N; n++ {
+		if err := pq.Enqueue(NewPriorityItemString("value", uint8(math.Mod(float64(n), 255)))); err != nil {
+			b.Error(err)
+		}
+	}
+
+	// Start benchmark
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = pq.Dequeue()
 	}
 }
