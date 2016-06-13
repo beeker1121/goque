@@ -11,6 +11,18 @@ import (
 // prefixSep is the prefix separator for each item key.
 var prefixSep []byte = []byte(":")
 
+// pqorder defines the priority ordering of the queue.
+type order int
+
+// Defines which priority order to dequeue in.
+//
+// ASC will use priority level 0 as the most important.
+// DESC will use priority level 255 as the most important.
+const (
+	ASC order = iota
+	DESC
+)
+
 // priorityLevel holds the head and tail position of a priority
 // level within the queue.
 type priorityLevel struct {
@@ -29,6 +41,7 @@ type PriorityQueue struct {
 	sync.RWMutex
 	DataDir string
 	db      *leveldb.DB
+	order   order
 	levels  [256]*priorityLevel
 	isOpen  bool
 }
@@ -36,13 +49,14 @@ type PriorityQueue struct {
 // OpenPriorityQueue opens a priority queue if one exists at the given
 // directory. If one does not already exist, a new priority queue is
 // created.
-func OpenPriorityQueue(dataDir string) (*PriorityQueue, error) {
+func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
 	var err error
 
 	// Create a new PriorityQueue.
 	pq := &PriorityQueue{
 		DataDir: dataDir,
 		db:      &leveldb.DB{},
+		order:   order,
 		isOpen:  false,
 	}
 
@@ -114,10 +128,8 @@ func (pq *PriorityQueue) Drop() {
 func (pq *PriorityQueue) init() error {
 	// Loop through each priority level.
 	for i := 0; i <= 255; i++ {
-		// Generate the prefix for this level.
+		// Create a new LevelDB Iterator for this priority level.
 		prefix := generatePrefix(uint8(i))
-
-		// Create a new LevelDB Iterator using the prefix.
 		iter := pq.db.NewIterator(util.BytesPrefix(prefix), nil)
 
 		// Create a new priorityLevel.
@@ -141,7 +153,6 @@ func (pq *PriorityQueue) init() error {
 		}
 
 		pq.levels[i] = pl
-
 		iter.Release()
 	}
 

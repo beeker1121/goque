@@ -9,7 +9,7 @@ import (
 
 func TestPriorityQueueDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
-	pq, err := OpenPriorityQueue(file)
+	pq, err := OpenPriorityQueue(file, ASC)
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,7 +27,7 @@ func TestPriorityQueueDrop(t *testing.T) {
 
 func TestPriorityQueueEnqueue(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
-	pq, err := OpenPriorityQueue(file)
+	pq, err := OpenPriorityQueue(file, ASC)
 	if err != nil {
 		t.Error(err)
 	}
