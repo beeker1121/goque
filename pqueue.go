@@ -195,7 +195,7 @@ func (pq *PriorityQueue) UpdateString(item *PriorityItem, newValue string) error
 
 // Length returns the total number of items in the priority queue.
 func (pq *PriorityQueue) Length() uint64 {
-	var length uint64 = 0
+	var length uint64
 	for _, v := range pq.levels {
 		length += v.Length()
 	}
@@ -245,7 +245,7 @@ func (pq *PriorityQueue) resetCurrentLevel() {
 // findOffsetAsc finds the given offset from the current queue
 // position based on ascending order.
 func (pq *PriorityQueue) findOffsetAsc(offset uint64) (*PriorityItem, error) {
-	var length uint64 = 0
+	var length uint64
 	var priority uint8 = pq.curLevel
 
 	// Loop through the priority levels.
@@ -272,7 +272,7 @@ func (pq *PriorityQueue) findOffsetAsc(offset uint64) (*PriorityItem, error) {
 // findOffsetDesc finds the given offset from the current queue
 // position based on descending order.
 func (pq *PriorityQueue) findOffsetDesc(offset uint64) (*PriorityItem, error) {
-	var length uint64 = 0
+	var length uint64
 	var priority uint8 = pq.curLevel
 
 	// Loop through the priority levels.
