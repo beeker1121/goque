@@ -4,13 +4,14 @@ Goque provides embedded, disk-based implementations of stack, queue, and priorit
 
 Motivation for creating this project was the need for a persistent priority queue that remained performant while growing well beyond the available memory of a given machine. While there are many packages for Go offering queues, they all seem to be memory based and/or standalone solutions that are not embeddable within an application.
 
-The Go implementation of LevelDB is used as the backend for stacks and queues.
+Instead of using an in-memory heap structure to store data, everything is stored using the [Go port of LevelDB](https://github.com/syndtr/goleveldb). This results in very little memory being used no matter the size of the database, while read and write performance remains near constant.
 
 ## Features
 
 - Provides stack (LIFO), queue (FIFO), and priority queue structures.
 - Persistent, disk-based.
 - Optimized for fast inserts and reads.
+- Goroutine safe.
 - Designed to work with large datasets outside of RAM/memory.
 
 ## Installation
@@ -221,6 +222,7 @@ pq.Drop()
 
 ## Thanks
 
+**bogdanovich** ([https://github.com/bogdanovich/siberite](https://github.com/bogdanovich/siberite)) - Server based queue for Go using LevelDB  
 **syndtr** ([https://github.com/syndtr](https://github.com/syndtr)) - LevelDB port to Go  
 **connor4312** ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure  
 **bwmarrin** ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB  
