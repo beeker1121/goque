@@ -5,6 +5,10 @@ import (
 )
 
 var (
+	// ErrIncompatibleType is returned when trying to open stored
+	// Goque data structure type is incompatible with the opener.
+	ErrIncompatibleType = errors.New("goque: Opener type is incompatible with stored type")
+
 	// ErrEmpty is returned when the queue is empty.
 	ErrEmpty = errors.New("goque: The queue is empty")
 

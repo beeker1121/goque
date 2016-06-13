@@ -37,6 +37,15 @@ func OpenQueue(dataDir string) (*Queue, error) {
 		return q, err
 	}
 
+	// Check if this Goque type can open the requested data directory.
+	ok, err := checkGoqueType(dataDir, goqueQueue)
+	if err != nil {
+		return q, err
+	}
+	if !ok {
+		return q, ErrIncompatibleType
+	}
+
 	// Set isOpen and return.
 	q.isOpen = true
 	return q, q.init()

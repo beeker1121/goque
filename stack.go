@@ -37,6 +37,15 @@ func OpenStack(dataDir string) (*Stack, error) {
 		return s, err
 	}
 
+	// Check if this Goque type can open the requested data directory.
+	ok, err := checkGoqueType(dataDir, goqueStack)
+	if err != nil {
+		return s, err
+	}
+	if !ok {
+		return s, ErrIncompatibleType
+	}
+
 	// Set isOpen and return.
 	s.isOpen = true
 	return s, s.init()

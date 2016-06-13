@@ -7,6 +7,20 @@ import (
 	"time"
 )
 
+func TestStackIncompatibleType(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+	pq.Close()
+
+	if _, err = OpenStack(file); err != ErrIncompatibleType {
+		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening Queue")
+	}
+}
+
 func TestStackDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	s, err := OpenStack(file)

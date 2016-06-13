@@ -67,6 +67,15 @@ func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
 		return pq, err
 	}
 
+	// Check if this Goque type can open the requested data directory.
+	ok, err := checkGoqueType(dataDir, goquePriorityQueue)
+	if err != nil {
+		return pq, err
+	}
+	if !ok {
+		return pq, ErrIncompatibleType
+	}
+
 	// Set isOpen and return.
 	pq.isOpen = true
 	return pq, pq.init()
