@@ -15,16 +15,16 @@ The Go implementation of LevelDB is used as the backend for stacks and queues.
 
 ## Installation
 
-Import to your project:
-
-```go
-import "github.com/beeker1121/goque"
-```
-
 Fetch the package from GitHub:
 
 ```sh
 go get github.com/beeker1121/goque
+```
+
+Import to your project:
+
+```go
+import "github.com/beeker1121/goque"
 ```
 
 ## Usage
