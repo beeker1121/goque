@@ -103,26 +103,8 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If the current priority level is empty.
-	if pq.levels[pq.curLevel].Length() == 0 {
-		// Set starting value for curLevel.
-		pq.resetCurrentLevel()
-
-		// Try to get the next priority level.
-		for i := 0; i < 255; i++ {
-			if (pq.cmpAsc(uint8(i)) || pq.cmpDesc(uint8(i))) && pq.levels[uint8(i)].Length() > 0 {
-				pq.curLevel = uint8(i)
-			}
-		}
-
-		// If still empty, return queue empty error.
-		if pq.levels[pq.curLevel].Length() == 0 {
-			return nil, ErrEmpty
-		}
-	}
-
 	// Try to get the next item in the current priority level.
-	item, err := pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+1)
+	item, err := pq.getNextItem()
 	if err != nil {
 		return item, err
 	}
@@ -136,6 +118,48 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	pq.levels[pq.curLevel].head++
 
 	return item, nil
+}
+
+// Peek returns the next item in the priority queue without removing it.
+func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
+	pq.RLock()
+	defer pq.RUnlock()
+	return pq.getNextItem()
+}
+
+// PeekByOffset returns the item located at the given offset,
+// starting from the head of the queue, without removing it.
+func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
+	pq.RLock()
+	defer pq.RUnlock()
+
+	// If the offset is within the current priority level.
+	if pq.levels[pq.curLevel].Length()-1 >= offset {
+		return pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+offset+1)
+	}
+
+	var length uint64 = 0
+	var priority uint8 = pq.curLevel
+
+	// Loop through the priority levels.
+	for i := 0; i <= 255; i++ {
+		iu8 := uint8(i)
+
+		// If this level is lower than the current level based on ordering and contains items.
+		if ((pq.order == ASC && iu8 >= priority) || (pq.order == DESC && iu8 <= priority)) && pq.levels[iu8].Length() > 0 {
+			priority = iu8
+			newLength := pq.levels[iu8].Length() - 1
+
+			// If the offset is within the current priority level.
+			if length+newLength >= offset {
+				return pq.getItemByPriorityID(priority, offset-length+1)
+			}
+
+			length += newLength + 1
+		}
+	}
+
+	return nil, ErrOutOfBounds
 }
 
 // Length returns the total number of items in the priority queue.
@@ -185,6 +209,31 @@ func (pq *PriorityQueue) resetCurrentLevel() {
 	} else if pq.order == DESC {
 		pq.curLevel = 0
 	}
+}
+
+// getNextItem returns the next item in the priority queue, updating
+// the current priority level of the queue if necessary.
+func (pq *PriorityQueue) getNextItem() (*PriorityItem, error) {
+	// If the current priority level is empty.
+	if pq.levels[pq.curLevel].Length() == 0 {
+		// Set starting value for curLevel.
+		pq.resetCurrentLevel()
+
+		// Try to get the next priority level.
+		for i := 0; i <= 255; i++ {
+			if (pq.cmpAsc(uint8(i)) || pq.cmpDesc(uint8(i))) && pq.levels[uint8(i)].Length() > 0 {
+				pq.curLevel = uint8(i)
+			}
+		}
+
+		// If still empty, return queue empty error.
+		if pq.levels[pq.curLevel].Length() == 0 {
+			return nil, ErrEmpty
+		}
+	}
+
+	// Try to get the next item in the current priority level.
+	return pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+1)
 }
 
 // getItemByID returns an item, if found, for the given ID.

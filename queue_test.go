@@ -102,6 +102,15 @@ func TestQueuePeek(t *testing.T) {
 	if peekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
+
+	secondPeekItem, err := q.Peek()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	}
 }
 
 func TestQueuePeekByOffset(t *testing.T) {
@@ -119,15 +128,24 @@ func TestQueuePeekByOffset(t *testing.T) {
 		}
 	}
 
+	compStr := "value for item 4"
+
 	peekItem, err := q.PeekByOffset(3)
 	if err != nil {
 		t.Error(err)
 	}
 
-	compStr := "value for item 3"
-
 	if peekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
+	}
+
+	secondPeekItem, err := q.PeekByOffset(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
 	}
 }
 
@@ -146,15 +164,15 @@ func TestQueuePeekByID(t *testing.T) {
 		}
 	}
 
-	peekItem, err := q.PeekByID(3)
+	compStr := "value for item 3"
+
+	secondPeekItem, err := q.PeekByID(3)
 	if err != nil {
 		t.Error(err)
 	}
 
-	compStr := "value for item 3"
-
-	if peekItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
 	}
 }
 

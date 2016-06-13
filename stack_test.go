@@ -102,6 +102,15 @@ func TestStackPeek(t *testing.T) {
 	if peekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
 	}
+
+	secondPeekItem, err := s.Peek()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
+	}
 }
 
 func TestStackPeekByOffset(t *testing.T) {
@@ -119,15 +128,24 @@ func TestStackPeekByOffset(t *testing.T) {
 		}
 	}
 
+	compStr := "value for item 7"
+
 	peekItem, err := s.PeekByOffset(3)
 	if err != nil {
 		t.Error(err)
 	}
 
-	compStr := "value for item 7"
-
 	if peekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
+	}
+
+	secondPeekItem, err := s.PeekByOffset(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
 	}
 }
 
@@ -146,15 +164,24 @@ func TestStackPeekByID(t *testing.T) {
 		}
 	}
 
+	compStr := "value for item 3"
+
 	peekItem, err := s.PeekByID(3)
 	if err != nil {
 		t.Error(err)
 	}
 
-	compStr := "value for item 3"
-
 	if peekItem.ToString() != compStr {
 		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
+	}
+
+	secondPeekItem, err := s.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if secondPeekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, secondPeekItem.ToString())
 	}
 }
 

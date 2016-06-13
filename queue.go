@@ -94,7 +94,7 @@ func (q *Queue) Peek() (*Item, error) {
 func (q *Queue) PeekByOffset(offset uint64) (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
-	return q.getItemByID(q.head + offset)
+	return q.getItemByID(q.head + offset + 1)
 }
 
 // PeekByID returns the item with the given ID without removing it.
