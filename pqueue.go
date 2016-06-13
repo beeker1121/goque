@@ -11,16 +11,13 @@ import (
 // prefixSep is the prefix separator for each item key.
 var prefixSep []byte = []byte(":")
 
-// pqorder defines the priority ordering of the queue.
+// order defines the priority ordering of the queue.
 type order int
 
 // Defines which priority order to dequeue in.
-//
-// ASC will use priority level 0 as the most important.
-// DESC will use priority level 255 as the most important.
 const (
-	ASC order = iota
-	DESC
+	ASC  order = iota // Set priority level 0 as most important.
+	DESC              // Set priority level 255 as most important.
 )
 
 // priorityLevel holds the head and tail position of a priority
