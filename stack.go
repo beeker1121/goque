@@ -143,7 +143,7 @@ func (s *Stack) Drop() {
 // getItemByID returns an item, if found, for the given ID.
 func (s *Stack) getItemByID(id uint64) (*Item, error) {
 	// Check if empty or out of bounds.
-	if s.Length() < 1 {
+	if s.Length() == 0 {
 		return nil, ErrEmpty
 	} else if id <= s.tail || id > s.head {
 		return nil, ErrOutOfBounds

@@ -143,7 +143,7 @@ func (q *Queue) Drop() {
 // getItemByID returns an item, if found, for the given ID.
 func (q *Queue) getItemByID(id uint64) (*Item, error) {
 	// Check if empty or out of bounds.
-	if q.Length() < 1 {
+	if q.Length() == 0 {
 		return nil, ErrEmpty
 	} else if id <= q.head || id > q.tail {
 		return nil, ErrOutOfBounds

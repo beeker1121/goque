@@ -120,6 +120,29 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	return item, nil
 }
 
+// DequeueByPriority removes the next item in the given priority level
+// and returns it.
+func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error) {
+	pq.Lock()
+	defer pq.Unlock()
+
+	// Try to get the next item in the given priority level.
+	item, err := pq.getItemByPriorityID(priority, pq.levels[priority].head+1)
+	if err != nil {
+		return item, err
+	}
+
+	// Remove this item from the priority queue.
+	if err = pq.db.Delete(item.Key, nil); err != nil {
+		return item, err
+	}
+
+	// Increment position.
+	pq.levels[priority].head++
+
+	return item, nil
+}
+
 // Peek returns the next item in the priority queue without removing it.
 func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
 	pq.RLock()
@@ -301,7 +324,7 @@ func (pq *PriorityQueue) getNextItem() (*PriorityItem, error) {
 // getItemByID returns an item, if found, for the given ID.
 func (pq *PriorityQueue) getItemByPriorityID(priority uint8, id uint64) (*PriorityItem, error) {
 	// Check if empty or out of bounds.
-	if pq.levels[priority].Length() < 1 {
+	if pq.levels[priority].Length() == 0 {
 		return nil, ErrEmpty
 	} else if id <= pq.levels[priority].head || id > pq.levels[priority].tail {
 		return nil, ErrOutOfBounds

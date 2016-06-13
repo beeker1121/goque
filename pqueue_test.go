@@ -130,6 +130,47 @@ func TestPriorityQueueDequeueDesc(t *testing.T) {
 	}
 }
 
+func TestPriorityQueueDequeueByPriority(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 1, got %d", pq.Length())
+	}
+
+	deqItem, err := pq.DequeueByPriority(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if pq.Length() != 49 {
+		t.Errorf("Expected queue length of 49, got %d", pq.Length())
+	}
+
+	compStr := "value for item 1"
+
+	if deqItem.Priority != 3 {
+		t.Errorf("Expected priority level to be 1, got %d", deqItem.Priority)
+	}
+
+	if deqItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, deqItem.ToString())
+	}
+}
+
 func TestPriorityQueuePeek(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
