@@ -391,6 +391,7 @@ func generatePrefix(level uint8) []byte {
 	return prefix
 }
 
+// generateKey create a key to be used with LevelDB.
 func generateKey(priority uint8, id uint64) []byte {
 	// prefix + key = 2 + 8 = 10
 	key := make([]byte, 10)
