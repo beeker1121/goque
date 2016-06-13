@@ -39,11 +39,12 @@ func (pl *priorityLevel) Length() uint64 {
 // priority levels.
 type PriorityQueue struct {
 	sync.RWMutex
-	DataDir string
-	db      *leveldb.DB
-	order   order
-	levels  [256]*priorityLevel
-	isOpen  bool
+	DataDir  string
+	db       *leveldb.DB
+	order    order
+	levels   [256]*priorityLevel
+	curLevel uint8
+	isOpen   bool
 }
 
 // OpenPriorityQueue opens a priority queue if one exists at the given
@@ -79,22 +80,62 @@ func (pq *PriorityQueue) Enqueue(item *PriorityItem) error {
 	// Get the priorityLevel.
 	level := pq.levels[item.Priority]
 
-	// Set item ID.
+	// Set item ID and key.
 	item.ID = level.tail + 1
-
-	// Set the item key.
-	// priority + prefix + key = 1 + 1 + 8 = 10
-	key := make([]byte, 10)
-	copy(key[0:2], generatePrefix(item.Priority))
-	copy(key[2:], idToKey(item.ID))
+	item.Key = generateKey(item.Priority, item.ID)
 
 	// Add it to the priority queue.
 	err := pq.db.Put(item.Key, item.Value, nil)
 	if err == nil {
 		level.tail++
+
+		// If this priority level is more important than the curLevel.
+		if pq.cmpAsc(item.Priority) || pq.cmpDesc(item.Priority) {
+			pq.curLevel = item.Priority
+		}
 	}
 
 	return err
+}
+
+// Dequeue removes the next item in the priority queue and returns it.
+func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
+	pq.Lock()
+	defer pq.Unlock()
+
+	// If the current priority level is empty.
+	if pq.levels[pq.curLevel].Length() == 0 {
+		// Set starting value for curLevel.
+		pq.resetCurrentLevel()
+
+		// Try to get the next priority level.
+		for i := 0; i < 255; i++ {
+			if (pq.cmpAsc(uint8(i)) || pq.cmpDesc(uint8(i))) && pq.levels[uint8(i)].Length() > 0 {
+				pq.curLevel = uint8(i)
+			}
+		}
+
+		// If still empty, return queue empty error.
+		if pq.levels[pq.curLevel].Length() == 0 {
+			return nil, ErrEmpty
+		}
+	}
+
+	// Try to get the next item in the current priority level.
+	item, err := pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+1)
+	if err != nil {
+		return item, err
+	}
+
+	// Remove this item from the priority queue.
+	if err = pq.db.Delete(item.Key, nil); err != nil {
+		return item, err
+	}
+
+	// Increment position.
+	pq.levels[pq.curLevel].head++
+
+	return item, nil
 }
 
 // Length returns the total number of items in the priority queue.
@@ -124,8 +165,51 @@ func (pq *PriorityQueue) Drop() {
 	os.RemoveAll(pq.DataDir)
 }
 
+// cmpAsc returns wehther the given priority level is higher than the
+// current priority level based on ascending order.
+func (pq *PriorityQueue) cmpAsc(level uint8) bool {
+	return pq.order == ASC && level < pq.curLevel
+}
+
+// cmpAsc returns wehther the given priority level is higher than the
+// current priority level based on descending order.
+func (pq *PriorityQueue) cmpDesc(level uint8) bool {
+	return pq.order == DESC && level > pq.curLevel
+}
+
+// resetCurrentLevel resets the current priority level of the queue
+// so the highest level can be found.
+func (pq *PriorityQueue) resetCurrentLevel() {
+	if pq.order == ASC {
+		pq.curLevel = 255
+	} else if pq.order == DESC {
+		pq.curLevel = 0
+	}
+}
+
+// getItemByID returns an item, if found, for the given ID.
+func (pq *PriorityQueue) getItemByPriorityID(priority uint8, id uint64) (*PriorityItem, error) {
+	// Check if empty or out of bounds.
+	if pq.levels[priority].Length() < 1 {
+		return nil, ErrEmpty
+	} else if id <= pq.levels[priority].head || id > pq.levels[priority].tail {
+		return nil, ErrOutOfBounds
+	}
+
+	var err error
+
+	// Create a new PriorityItem.
+	item := &PriorityItem{ID: id, Priority: priority, Key: generateKey(priority, id)}
+	item.Value, err = pq.db.Get(item.Key, nil)
+
+	return item, err
+}
+
 // init initializes the priority queue data.
 func (pq *PriorityQueue) init() error {
+	// Set starting value for curLevel.
+	pq.resetCurrentLevel()
+
 	// Loop through each priority level.
 	for i := 0; i <= 255; i++ {
 		// Create a new LevelDB Iterator for this priority level.
@@ -141,6 +225,11 @@ func (pq *PriorityQueue) init() error {
 		// Set priority level head to the first item.
 		if iter.First() {
 			pl.head = keyToID(iter.Key()[2:]) - 1
+
+			// Since this priority level has item(s), handle updating curLevel.
+			if pq.cmpAsc(uint8(i)) || pq.cmpDesc(uint8(i)) {
+				pq.curLevel = uint8(i)
+			}
 		}
 
 		// Set priority level tail to the last item.
@@ -161,8 +250,17 @@ func (pq *PriorityQueue) init() error {
 
 // generatePrefix creates the key prefix for the given priority level.
 func generatePrefix(level uint8) []byte {
+	// priority + prefixSep = 1 + 1 = 2
 	prefix := make([]byte, 2)
 	prefix[0] = byte(level)
 	prefix[1] = prefixSep[0]
 	return prefix
+}
+
+func generateKey(priority uint8, id uint64) []byte {
+	// prefix + key = 2 + 8 = 10
+	key := make([]byte, 10)
+	copy(key[0:2], generatePrefix(priority))
+	copy(key[2:], idToKey(id))
+	return key
 }
