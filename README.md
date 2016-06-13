@@ -45,7 +45,7 @@ Create a new item:
 
 ```go
 item := goque.NewItem([]byte("item value"))
-...
+// or
 item := goque.NewItemString("item value")
 ```
 
@@ -53,7 +53,6 @@ Push an item:
 
 ```go
 err := s.Push(item)
-...
 ```
 
 Pop an item:
@@ -71,20 +70,18 @@ Peek the next stack item:
 
 ```go
 item, err := s.Peek()
-...
+// or
 item, err := s.PeekByOffset(1)
-...
+// or
 item, err := s.PeekByID(1)
-...
 ```
 
 Update an item in the stack:
 
 ```go
 err := s.Update(item, []byte("new value"))
-...
+// or
 err := s.UpdateString(item, "new value")
-...
 ```
 
 Delete the stack and underlying database:
@@ -111,7 +108,7 @@ Create a new item:
 
 ```go
 item := goque.NewItem([]byte("item value"))
-...
+// or
 item := goque.NewItemString("item value")
 ```
 
@@ -119,7 +116,6 @@ Enqueue an item:
 
 ```go
 err := q.Enqueue(item)
-...
 ```
 
 Dequeue an item:
@@ -137,20 +133,18 @@ Peek the next queue item:
 
 ```go
 item, err := q.Peek()
-...
+// or
 item, err := q.PeekByOffset(1)
-...
+// or
 item, err := q.PeekByID(1)
-...
 ```
 
 Update an item in the queue:
 
 ```go
 err := q.Update(item, []byte("new value"))
-...
+// or
 err := q.UpdateString(item, "new value")
-...
 ```
 
 Delete the queue and underlying database:
@@ -177,7 +171,7 @@ Create a new item:
 
 ```go
 item := goque.NewPriorityItem([]byte("item value"), 0)
-...
+// or
 item := goque.NewPriorityItemString("item value", 0)
 ```
 
@@ -185,14 +179,13 @@ Enqueue an item:
 
 ```go
 err := pq.Enqueue(item)
-...
 ```
 
 Dequeue an item:
 
 ```go
 item, err := pq.Dequeue()
-...
+// or
 item, err := pq.DequeueByPriority(0)
 ...
 fmt.Println(item.ID)       // 1
@@ -206,20 +199,18 @@ Peek the next priority queue item:
 
 ```go
 item, err := pq.Peek()
-...
+// or
 item, err := pq.PeekByOffset(1)
-...
+// or
 item, err := pq.PeekByPriorityID(0, 1)
-...
 ```
 
 Update an item in the priority queue:
 
 ```go
 err := pq.Update(item, []byte("new value"))
-...
+// or
 err := pq.UpdateString(item, "new value")
-...
 ```
 
 Delete the priority queue and underlying database:
