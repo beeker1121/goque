@@ -40,18 +40,19 @@ func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+		defer f.Close()
 
 		_, err = f.Write(gtb)
 		if err != nil {
 			return false, err
 		}
 
-		f.Close()
 		return true, nil
 	}
 	if err != nil {
 		return false, err
 	}
+	defer f.Close()
 
 	// Get the saved type from the file.
 	fb := make([]byte, 1)
@@ -59,7 +60,6 @@ func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	f.Close()
 
 	// Convert the file byte to its goqueType.
 	filegt := goqueType(fb[0])
