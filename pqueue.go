@@ -138,28 +138,21 @@ func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
 		return pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+offset+1)
 	}
 
-	var length uint64 = 0
-	var priority uint8 = pq.curLevel
-
-	// Loop through the priority levels.
-	for i := 0; i <= 255; i++ {
-		iu8 := uint8(i)
-
-		// If this level is lower than the current level based on ordering and contains items.
-		if ((pq.order == ASC && iu8 >= priority) || (pq.order == DESC && iu8 <= priority)) && pq.levels[iu8].Length() > 0 {
-			priority = iu8
-			newLength := pq.levels[iu8].Length() - 1
-
-			// If the offset is within the current priority level.
-			if length+newLength >= offset {
-				return pq.getItemByPriorityID(priority, offset-length+1)
-			}
-
-			length += newLength + 1
-		}
+	if pq.order == ASC {
+		return pq.findOffsetAsc(offset)
+	} else if pq.order == DESC {
+		return pq.findOffsetDesc(offset)
 	}
 
-	return nil, ErrOutOfBounds
+	return nil, nil
+}
+
+// PeekByPriorityID returns the item with the given ID and priority without
+// removing it.
+func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityItem, error) {
+	pq.RLock()
+	defer pq.RUnlock()
+	return pq.getItemByPriorityID(priority, id)
 }
 
 // Length returns the total number of items in the priority queue.
@@ -191,14 +184,14 @@ func (pq *PriorityQueue) Drop() {
 
 // cmpAsc returns wehther the given priority level is higher than the
 // current priority level based on ascending order.
-func (pq *PriorityQueue) cmpAsc(level uint8) bool {
-	return pq.order == ASC && level < pq.curLevel
+func (pq *PriorityQueue) cmpAsc(priority uint8) bool {
+	return pq.order == ASC && priority < pq.curLevel
 }
 
 // cmpAsc returns wehther the given priority level is higher than the
 // current priority level based on descending order.
-func (pq *PriorityQueue) cmpDesc(level uint8) bool {
-	return pq.order == DESC && level > pq.curLevel
+func (pq *PriorityQueue) cmpDesc(priority uint8) bool {
+	return pq.order == DESC && priority > pq.curLevel
 }
 
 // resetCurrentLevel resets the current priority level of the queue
@@ -209,6 +202,60 @@ func (pq *PriorityQueue) resetCurrentLevel() {
 	} else if pq.order == DESC {
 		pq.curLevel = 0
 	}
+}
+
+// findOffsetAsc finds the given offset from the current queue
+// position based on ascending order.
+func (pq *PriorityQueue) findOffsetAsc(offset uint64) (*PriorityItem, error) {
+	var length uint64 = 0
+	var priority uint8 = pq.curLevel
+
+	// Loop through the priority levels.
+	for i := 0; i <= 255; i++ {
+		iu8 := uint8(i)
+
+		// If this level is lower than the current level based on ordering and contains items.
+		if iu8 >= priority && pq.levels[iu8].Length() > 0 {
+			priority = iu8
+			newLength := pq.levels[iu8].Length() - 1
+
+			// If the offset is within the current priority level.
+			if length+newLength >= offset {
+				return pq.getItemByPriorityID(priority, offset-length+1)
+			}
+
+			length += newLength + 1
+		}
+	}
+
+	return nil, ErrOutOfBounds
+}
+
+// findOffsetDesc finds the given offset from the current queue
+// position based on descending order.
+func (pq *PriorityQueue) findOffsetDesc(offset uint64) (*PriorityItem, error) {
+	var length uint64 = 0
+	var priority uint8 = pq.curLevel
+
+	// Loop through the priority levels.
+	for i := 255; i >= 0; i-- {
+		iu8 := uint8(i)
+
+		// If this level is lower than the current level based on ordering and contains items.
+		if iu8 <= priority && pq.levels[iu8].Length() > 0 {
+			priority = iu8
+			newLength := pq.levels[iu8].Length() - 1
+
+			// If the offset is within the current priority level.
+			if length+newLength >= offset {
+				return pq.getItemByPriorityID(priority, offset-length+1)
+			}
+
+			length += newLength + 1
+		}
+	}
+
+	return nil, ErrOutOfBounds
 }
 
 // getNextItem returns the next item in the priority queue, updating

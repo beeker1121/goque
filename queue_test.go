@@ -186,6 +186,15 @@ func TestQueuePeekByID(t *testing.T) {
 
 	compStr := "value for item 3"
 
+	peekItem, err := q.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if peekItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, peekItem.ToString())
+	}
+
 	secondPeekItem, err := q.PeekByID(3)
 	if err != nil {
 		t.Error(err)
