@@ -9,6 +9,7 @@ Instead of using an in-memory heap structure to store data, everything is stored
 ## Features
 
 - Provides stack (LIFO), queue (FIFO), and priority queue structures.
+- Stacks and queues (but not priority queues) are interchangeable.
 - Persistent, disk-based.
 - Optimized for fast inserts and reads.
 - Goroutine safe.
@@ -220,10 +221,25 @@ Delete the priority queue and underlying database:
 pq.Drop()
 ```
 
+## Benchmarks
+
+Benchmarks were run on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.75 GB of RAM):
+
+```
+go test -bench=.
+PASS
+BenchmarkPriorityQueueEnqueue     200000              8102 ns/op             442 B/op          5 allocs/op
+BenchmarkPriorityQueueDequeue     200000             18602 ns/op            1161 B/op         17 allocs/op
+BenchmarkQueueEnqueue             200000              7582 ns/op             399 B/op          5 allocs/op
+BenchmarkQueueDequeue             200000             19317 ns/op            1071 B/op         17 allocs/op
+BenchmarkStackPush                200000              7847 ns/op             399 B/op          5 allocs/op
+BenchmarkStackPop                 200000             18950 ns/op            1081 B/op         17 allocs/op
+```
+
 ## Thanks
 
-**bogdanovich** ([https://github.com/bogdanovich/siberite](https://github.com/bogdanovich/siberite)) - Server based queue for Go using LevelDB  
 **syndtr** ([https://github.com/syndtr](https://github.com/syndtr)) - LevelDB port to Go  
+**bogdanovich** ([https://github.com/bogdanovich/siberite](https://github.com/bogdanovich/siberite)) - Server based queue for Go using LevelDB  
 **connor4312** ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure  
 **bwmarrin** ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB  
 **zeroZshadow** ([https://github.com/zeroZshadow](https://github.com/zeroZshadow)) - Code review and optimization  
