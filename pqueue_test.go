@@ -222,6 +222,164 @@ func TestPriorityQueuePeek(t *testing.T) {
 	}
 }
 
+func TestPriorityQueuePeekByOffsetEmptyAsc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+
+	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	if _, err = pq.Dequeue(); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+}
+
+func TestPriorityQueuePeekByOffsetEmptyDesc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, DESC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+
+	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	if _, err = pq.Dequeue(); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+}
+
+func TestPriorityQueuePeekByOffsetBoundsAsc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+
+	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	_, err = pq.PeekByOffset(1)
+	if err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	_, err = pq.PeekByOffset(50)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	_, err = pq.PeekByOffset(51)
+	if err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+}
+
+func TestPriorityQueuePeekByOffsetBoundsDesc(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, DESC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.PeekByOffset(0)
+	if err != ErrEmpty {
+		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+	}
+
+	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
+		t.Error(err)
+	}
+
+	_, err = pq.PeekByOffset(0)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	_, err = pq.PeekByOffset(1)
+	if err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	_, err = pq.PeekByOffset(50)
+	if err != nil {
+		t.Errorf("Expected to get nil error, got %s", err.Error())
+	}
+
+	_, err = pq.PeekByOffset(51)
+	if err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+}
+
 func TestPriorityQueuePeekByOffsetAsc(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
