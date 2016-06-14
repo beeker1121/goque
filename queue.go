@@ -56,6 +56,11 @@ func (q *Queue) Enqueue(item *Item) error {
 	q.Lock()
 	defer q.Unlock()
 
+	// If queue is already closed.
+	if !q.isOpen {
+		return ErrDBClosed
+	}
+
 	// Set item ID and key.
 	item.ID = q.tail + 1
 	item.Key = idToKey(item.ID)
@@ -73,6 +78,11 @@ func (q *Queue) Enqueue(item *Item) error {
 func (q *Queue) Dequeue() (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
+
+	// If queue is already closed.
+	if !q.isOpen {
+		return nil, ErrDBClosed
+	}
 
 	// Try to get the next item in the queue.
 	item, err := q.getItemByID(q.head + 1)
@@ -95,6 +105,12 @@ func (q *Queue) Dequeue() (*Item, error) {
 func (q *Queue) Peek() (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
+
+	// If queue is already closed.
+	if !q.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return q.getItemByID(q.head + 1)
 }
 
@@ -103,6 +119,12 @@ func (q *Queue) Peek() (*Item, error) {
 func (q *Queue) PeekByOffset(offset uint64) (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
+
+	// If queue is already closed.
+	if !q.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return q.getItemByID(q.head + offset + 1)
 }
 
@@ -110,6 +132,12 @@ func (q *Queue) PeekByOffset(offset uint64) (*Item, error) {
 func (q *Queue) PeekByID(id uint64) (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
+
+	// If queue is already closed.
+	if !q.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return q.getItemByID(id)
 }
 
@@ -117,6 +145,12 @@ func (q *Queue) PeekByID(id uint64) (*Item, error) {
 func (q *Queue) Update(item *Item, newValue []byte) error {
 	q.Lock()
 	defer q.Unlock()
+
+	// If queue is already closed.
+	if !q.isOpen {
+		return ErrDBClosed
+	}
+
 	item.Value = newValue
 	return q.db.Put(item.Key, item.Value, nil)
 }
@@ -134,10 +168,17 @@ func (q *Queue) Length() uint64 {
 
 // Close closes the LevelDB database of the queue.
 func (q *Queue) Close() {
+	q.Lock()
+	defer q.Unlock()
+
 	// If queue is already closed.
 	if !q.isOpen {
 		return
 	}
+
+	// Reset queue head and tail.
+	q.head = 0
+	q.tail = 0
 
 	q.db.Close()
 	q.isOpen = false

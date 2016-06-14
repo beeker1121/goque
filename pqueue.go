@@ -83,6 +83,11 @@ func (pq *PriorityQueue) Enqueue(item *PriorityItem) error {
 	pq.Lock()
 	defer pq.Unlock()
 
+	// If queue is already closed.
+	if !pq.isOpen {
+		return ErrDBClosed
+	}
+
 	// Get the priorityLevel.
 	level := pq.levels[item.Priority]
 
@@ -109,6 +114,11 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
+	// If queue is already closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	// Try to get the next item in the current priority level.
 	item, err := pq.getNextItem()
 	if err != nil {
@@ -132,6 +142,11 @@ func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error
 	pq.Lock()
 	defer pq.Unlock()
 
+	// If queue is already closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	// Try to get the next item in the given priority level.
 	item, err := pq.getItemByPriorityID(priority, pq.levels[priority].head+1)
 	if err != nil {
@@ -153,6 +168,12 @@ func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error
 func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
 	pq.RLock()
 	defer pq.RUnlock()
+
+	// If queue is already closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return pq.getNextItem()
 }
 
@@ -161,6 +182,11 @@ func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
 func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
 	pq.RLock()
 	defer pq.RUnlock()
+
+	// If queue is already closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
 
 	// Check if queue is empty.
 	if pq.Length() == 0 {
@@ -186,6 +212,12 @@ func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
 func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityItem, error) {
 	pq.RLock()
 	defer pq.RUnlock()
+
+	// If queue is already closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return pq.getItemByPriorityID(priority, id)
 }
 
@@ -194,6 +226,12 @@ func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityI
 func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
 	pq.Lock()
 	defer pq.Unlock()
+
+	// If queue is already closed.
+	if !pq.isOpen {
+		return ErrDBClosed
+	}
+
 	item.Value = newValue
 	return pq.db.Put(item.Key, item.Value, nil)
 }
@@ -206,6 +244,9 @@ func (pq *PriorityQueue) UpdateString(item *PriorityItem, newValue string) error
 
 // Length returns the total number of items in the priority queue.
 func (pq *PriorityQueue) Length() uint64 {
+	pq.RLock()
+	defer pq.RUnlock()
+
 	var length uint64
 	for _, v := range pq.levels {
 		length += v.length()
@@ -216,9 +257,18 @@ func (pq *PriorityQueue) Length() uint64 {
 
 // Close closes the LevelDB database of the priority queue.
 func (pq *PriorityQueue) Close() {
+	pq.Lock()
+	defer pq.Unlock()
+
 	// If queue is already closed.
 	if !pq.isOpen {
 		return
+	}
+
+	// Reset head and tail of each priority level.
+	for i := 0; i <= 255; i++ {
+		pq.levels[uint8(i)].head = 0
+		pq.levels[uint8(i)].tail = 0
 	}
 
 	pq.db.Close()

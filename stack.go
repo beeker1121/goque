@@ -56,6 +56,11 @@ func (s *Stack) Push(item *Item) error {
 	s.Lock()
 	defer s.Unlock()
 
+	// If stack is already closed.
+	if !s.isOpen {
+		return ErrDBClosed
+	}
+
 	// Set item ID and key.
 	item.ID = s.head + 1
 	item.Key = idToKey(item.ID)
@@ -73,6 +78,11 @@ func (s *Stack) Push(item *Item) error {
 func (s *Stack) Pop() (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
+
+	// If stack is already closed.
+	if !s.isOpen {
+		return nil, ErrDBClosed
+	}
 
 	// Try to get the next item in the stack.
 	item, err := s.getItemByID(s.head)
@@ -95,6 +105,12 @@ func (s *Stack) Pop() (*Item, error) {
 func (s *Stack) Peek() (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
+
+	// If stack is already closed.
+	if !s.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return s.getItemByID(s.head)
 }
 
@@ -103,6 +119,12 @@ func (s *Stack) Peek() (*Item, error) {
 func (s *Stack) PeekByOffset(offset uint64) (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
+
+	// If stack is already closed.
+	if !s.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return s.getItemByID(s.head - offset)
 }
 
@@ -110,6 +132,12 @@ func (s *Stack) PeekByOffset(offset uint64) (*Item, error) {
 func (s *Stack) PeekByID(id uint64) (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
+
+	// If stack is already closed.
+	if !s.isOpen {
+		return nil, ErrDBClosed
+	}
+
 	return s.getItemByID(id)
 }
 
@@ -117,6 +145,12 @@ func (s *Stack) PeekByID(id uint64) (*Item, error) {
 func (s *Stack) Update(item *Item, newValue []byte) error {
 	s.Lock()
 	defer s.Unlock()
+
+	// If stack is already closed.
+	if !s.isOpen {
+		return ErrDBClosed
+	}
+
 	item.Value = newValue
 	return s.db.Put(item.Key, item.Value, nil)
 }
@@ -134,10 +168,17 @@ func (s *Stack) Length() uint64 {
 
 // Close closes the LevelDB database of the stack.
 func (s *Stack) Close() {
+	s.Lock()
+	defer s.Unlock()
+
 	// If stack is already closed.
 	if !s.isOpen {
 		return
 	}
+
+	// Reset stack head and tail.
+	s.head = 0
+	s.tail = 0
 
 	s.db.Close()
 	s.isOpen = false

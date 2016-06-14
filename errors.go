@@ -15,4 +15,9 @@ var (
 	// ErrOutOfBounds is returned when the ID used to lookup an item
 	// in the queue is outside the current range of the queue.
 	ErrOutOfBounds = errors.New("goque: ID used is out of the range of the queue")
+
+	// ErrDBClosed is returned when the Close function has already
+	// been called, causing the stack, queue, or priority queue to
+	// close, as well as its underlying database.
+	ErrDBClosed = errors.New("goque: The database is closed")
 )

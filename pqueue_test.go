@@ -8,6 +8,38 @@ import (
 	"time"
 )
 
+func TestPriorityQueueClose(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 1, got %d", pq.Length())
+	}
+
+	pq.Close()
+
+	if _, err = pq.Dequeue(); err != ErrDBClosed {
+		t.Errorf("Expected to get database closed error, got %s", err.Error())
+	}
+
+	if pq.Length() != 0 {
+		t.Errorf("Expected queue length of 0, got %d", pq.Length())
+	}
+}
+
 func TestPriorityQueueDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
@@ -232,7 +264,7 @@ func TestPriorityQueuePeekByOffsetEmptyAsc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 
 	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
@@ -250,7 +282,7 @@ func TestPriorityQueuePeekByOffsetEmptyAsc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 }
 
@@ -264,7 +296,7 @@ func TestPriorityQueuePeekByOffsetEmptyDesc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 
 	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
@@ -282,7 +314,7 @@ func TestPriorityQueuePeekByOffsetEmptyDesc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 }
 
@@ -296,7 +328,7 @@ func TestPriorityQueuePeekByOffsetBoundsAsc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 
 	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
@@ -343,7 +375,7 @@ func TestPriorityQueuePeekByOffsetBoundsDesc(t *testing.T) {
 
 	_, err = pq.PeekByOffset(0)
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 
 	if err = pq.Enqueue(NewPriorityItemString("value", 0)); err != nil {
@@ -759,7 +791,7 @@ func TestPriorityQueueEmpty(t *testing.T) {
 
 	_, err = pq.Dequeue()
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 }
 

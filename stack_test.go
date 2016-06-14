@@ -7,6 +7,33 @@ import (
 	"time"
 )
 
+func TestStackClose(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	s, err := OpenStack(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Drop()
+
+	if err = s.Push(NewItemString("value")); err != nil {
+		t.Error(err)
+	}
+
+	if s.Length() != 1 {
+		t.Errorf("Expected stack length of 1, got %d", s.Length())
+	}
+
+	s.Close()
+
+	if _, err = s.Pop(); err != ErrDBClosed {
+		t.Errorf("Expected to get database closed error, got %s", err.Error())
+	}
+
+	if s.Length() != 0 {
+		t.Errorf("Expected stack length of 0, got %d", s.Length())
+	}
+}
+
 func TestStackDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	s, err := OpenStack(file)
@@ -35,7 +62,7 @@ func TestStackIncompatibleType(t *testing.T) {
 	pq.Close()
 
 	if _, err = OpenStack(file); err != ErrIncompatibleType {
-		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening Queue")
+		t.Error("Expected stack to return ErrIncompatibleTypes when opening goquePriorityQueue")
 	}
 }
 
@@ -55,7 +82,7 @@ func TestStackPush(t *testing.T) {
 	}
 
 	if s.Length() != 10 {
-		t.Errorf("Expected queue size of 10, got %d", s.Length())
+		t.Errorf("Expected stack size of 10, got %d", s.Length())
 	}
 }
 
@@ -75,7 +102,7 @@ func TestStackPop(t *testing.T) {
 	}
 
 	if s.Length() != 10 {
-		t.Errorf("Expected queue length of 1, got %d", s.Length())
+		t.Errorf("Expected stack length of 10, got %d", s.Length())
 	}
 
 	deqItem, err := s.Pop()
@@ -84,7 +111,7 @@ func TestStackPop(t *testing.T) {
 	}
 
 	if s.Length() != 9 {
-		t.Errorf("Expected queue length of 0, got %d", s.Length())
+		t.Errorf("Expected stack length of 9, got %d", s.Length())
 	}
 
 	compStr := "value for item 10"
@@ -118,7 +145,7 @@ func TestStackPeek(t *testing.T) {
 	}
 
 	if s.Length() != 1 {
-		t.Errorf("Expected queue length of 1, got %d", s.Length())
+		t.Errorf("Expected stack length of 1, got %d", s.Length())
 	}
 }
 
@@ -169,7 +196,7 @@ func TestStackPeekByOffset(t *testing.T) {
 	}
 
 	if s.Length() != 10 {
-		t.Errorf("Expected queue length of 10, got %d", s.Length())
+		t.Errorf("Expected stack length of 10, got %d", s.Length())
 	}
 }
 
@@ -200,7 +227,7 @@ func TestStackPeekByID(t *testing.T) {
 	}
 
 	if s.Length() != 10 {
-		t.Errorf("Expected queue length of 10, got %d", s.Length())
+		t.Errorf("Expected stack length of 10, got %d", s.Length())
 	}
 }
 
@@ -314,7 +341,7 @@ func TestStackEmpty(t *testing.T) {
 
 	_, err = s.Pop()
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 }
 
@@ -333,7 +360,7 @@ func TestStackOutOfBounds(t *testing.T) {
 
 	_, err = s.PeekByOffset(2)
 	if err != ErrOutOfBounds {
-		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+		t.Errorf("Expected to get stack out of bounds error, got %s", err.Error())
 	}
 }
 

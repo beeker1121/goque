@@ -7,6 +7,33 @@ import (
 	"time"
 )
 
+func TestQueueClose(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	q, err := OpenQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer q.Drop()
+
+	if err = q.Enqueue(NewItemString("value")); err != nil {
+		t.Error(err)
+	}
+
+	if q.Length() != 1 {
+		t.Errorf("Expected queue length of 1, got %d", q.Length())
+	}
+
+	q.Close()
+
+	if _, err = q.Dequeue(); err != ErrDBClosed {
+		t.Errorf("Expected to get database closed error, got %s", err.Error())
+	}
+
+	if q.Length() != 0 {
+		t.Errorf("Expected queue length of 0, got %d", q.Length())
+	}
+}
+
 func TestQueueDrop(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	q, err := OpenQueue(file)
@@ -35,7 +62,7 @@ func TestQueueIncompatibleType(t *testing.T) {
 	pq.Close()
 
 	if _, err = OpenQueue(file); err != ErrIncompatibleType {
-		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening Queue")
+		t.Error("Expected priority queue to return ErrIncompatibleTypes when opening goquePriorityQueue")
 	}
 }
 
@@ -75,7 +102,7 @@ func TestQueueDequeue(t *testing.T) {
 	}
 
 	if q.Length() != 10 {
-		t.Errorf("Expected queue length of 1, got %d", q.Length())
+		t.Errorf("Expected queue length of 10, got %d", q.Length())
 	}
 
 	deqItem, err := q.Dequeue()
@@ -84,7 +111,7 @@ func TestQueueDequeue(t *testing.T) {
 	}
 
 	if q.Length() != 9 {
-		t.Errorf("Expected queue length of 0, got %d", q.Length())
+		t.Errorf("Expected queue length of 9, got %d", q.Length())
 	}
 
 	compStr := "value for item 1"
@@ -314,7 +341,7 @@ func TestQueueEmpty(t *testing.T) {
 
 	_, err = q.Dequeue()
 	if err != ErrEmpty {
-		t.Errorf("Expected to get queue empty error, got %s", err.Error())
+		t.Errorf("Expected to get empty error, got %s", err.Error())
 	}
 }
 
