@@ -28,10 +28,8 @@ const (
 //
 // Returns true if types are compatible and false if incompatible.
 func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
-	// Set the path and goqueType byte slice used when saving to a file.
+	// Set the path to 'GOQUE' file.
 	path := filepath.Join(dataDir, "GOQUE")
-	gtb := make([]byte, 1)
-	gtb[0] = byte(gt)
 
 	// Read 'GOQUE' file for this directory.
 	f, err := os.OpenFile(path, os.O_RDONLY, 0)
@@ -41,6 +39,10 @@ func checkGoqueType(dataDir string, gt goqueType) (bool, error) {
 			return false, err
 		}
 		defer f.Close()
+
+		// Create byte slice of goqueType.
+		gtb := make([]byte, 1)
+		gtb[0] = byte(gt)
 
 		_, err = f.Write(gtb)
 		if err != nil {
