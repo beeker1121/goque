@@ -5,19 +5,19 @@ import (
 )
 
 var (
-	// ErrIncompatibleType is returned when trying to open stored
-	// Goque data structure type is incompatible with the opener.
-	ErrIncompatibleType = errors.New("goque: Opener type is incompatible with stored type")
+	// ErrIncompatibleType is returned when the opener type is
+	// incompatible with the stored Goque type.
+	ErrIncompatibleType = errors.New("goque: Opener type is incompatible with stored Goque type")
 
-	// ErrEmpty is returned when the queue is empty.
-	ErrEmpty = errors.New("goque: The queue is empty")
+	// ErrEmpty is returned when the stack or queue is empty.
+	ErrEmpty = errors.New("goque: The stack or queue is empty")
 
 	// ErrOutOfBounds is returned when the ID used to lookup an item
-	// in the queue is outside the current range of the queue.
-	ErrOutOfBounds = errors.New("goque: ID used is out of the range of the queue")
+	// is outside the range of the stack or queue.
+	ErrOutOfBounds = errors.New("goque: ID used is outside the range of the stack or queue")
 
 	// ErrDBClosed is returned when the Close function has already
-	// been called, causing the stack, queue, or priority queue to
-	// close, as well as its underlying database.
+	// been called, causing the stack or queue to close, as well as
+	// its underlying database.
 	ErrDBClosed = errors.New("goque: The database is closed")
 )
