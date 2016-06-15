@@ -56,7 +56,7 @@ func (q *Queue) Enqueue(item *Item) error {
 	q.Lock()
 	defer q.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return ErrDBClosed
 	}
@@ -79,7 +79,7 @@ func (q *Queue) Dequeue() (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -106,7 +106,7 @@ func (q *Queue) Peek() (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -120,7 +120,7 @@ func (q *Queue) PeekByOffset(offset uint64) (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -133,7 +133,7 @@ func (q *Queue) PeekByID(id uint64) (*Item, error) {
 	q.RLock()
 	defer q.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -146,7 +146,7 @@ func (q *Queue) Update(item *Item, newValue []byte) error {
 	q.Lock()
 	defer q.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !q.isOpen {
 		return ErrDBClosed
 	}
@@ -171,7 +171,7 @@ func (q *Queue) Close() {
 	q.Lock()
 	defer q.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is already closed.
 	if !q.isOpen {
 		return
 	}

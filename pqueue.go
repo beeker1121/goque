@@ -83,7 +83,7 @@ func (pq *PriorityQueue) Enqueue(item *PriorityItem) error {
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return ErrDBClosed
 	}
@@ -114,7 +114,7 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -142,7 +142,7 @@ func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -169,7 +169,7 @@ func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
 	pq.RLock()
 	defer pq.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -183,7 +183,7 @@ func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
 	pq.RLock()
 	defer pq.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -213,7 +213,7 @@ func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityI
 	pq.RLock()
 	defer pq.RUnlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -227,7 +227,7 @@ func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is closed.
 	if !pq.isOpen {
 		return ErrDBClosed
 	}
@@ -260,7 +260,7 @@ func (pq *PriorityQueue) Close() {
 	pq.Lock()
 	defer pq.Unlock()
 
-	// If queue is already closed.
+	// Check if queue is already closed.
 	if !pq.isOpen {
 		return
 	}

@@ -56,7 +56,7 @@ func (s *Stack) Push(item *Item) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return ErrDBClosed
 	}
@@ -79,7 +79,7 @@ func (s *Stack) Pop() (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -106,7 +106,7 @@ func (s *Stack) Peek() (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -120,7 +120,7 @@ func (s *Stack) PeekByOffset(offset uint64) (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -133,7 +133,7 @@ func (s *Stack) PeekByID(id uint64) (*Item, error) {
 	s.RLock()
 	defer s.RUnlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return nil, ErrDBClosed
 	}
@@ -146,7 +146,7 @@ func (s *Stack) Update(item *Item, newValue []byte) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// If stack is already closed.
+	// Check if stack is closed.
 	if !s.isOpen {
 		return ErrDBClosed
 	}
@@ -171,7 +171,7 @@ func (s *Stack) Close() {
 	s.Lock()
 	defer s.Unlock()
 
-	// If stack is already closed.
+	// Check if stack is already closed.
 	if !s.isOpen {
 		return
 	}
