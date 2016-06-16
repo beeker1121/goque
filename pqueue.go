@@ -302,7 +302,7 @@ func (pq *PriorityQueue) resetCurrentLevel() {
 func (pq *PriorityQueue) findOffset(offset uint64) (*PriorityItem, error) {
 	var length uint64
 	var curLevel uint8 = pq.curLevel
-	var newLevel int = 0
+	var newLevel int
 
 	// Handle newLevel initialization for descending order.
 	if pq.order == DESC {
