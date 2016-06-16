@@ -198,13 +198,7 @@ func (pq *PriorityQueue) PeekByOffset(offset uint64) (*PriorityItem, error) {
 		return pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+offset+1)
 	}
 
-	if pq.order == ASC {
-		return pq.findOffsetAsc(offset)
-	} else if pq.order == DESC {
-		return pq.findOffsetDesc(offset)
-	}
-
-	return nil, nil
+	return pq.findOffset(offset)
 }
 
 // PeekByPriorityID returns the item with the given ID and priority without
@@ -303,51 +297,53 @@ func (pq *PriorityQueue) resetCurrentLevel() {
 	}
 }
 
-// findOffsetAsc finds the given offset from the current queue
-// position based on ascending order.
-func (pq *PriorityQueue) findOffsetAsc(offset uint64) (*PriorityItem, error) {
+// findOffset finds the given offset from the current queue position
+// based on priority order.
+func (pq *PriorityQueue) findOffset(offset uint64) (*PriorityItem, error) {
 	var length uint64
-	var priority uint8 = pq.curLevel
+	var curLevel uint8 = pq.curLevel
+	var newLevel int = 0
 
-	// Loop through the priority levels.
-	for i := 0; i <= 255; i++ {
-		iu8 := uint8(i)
+	// Handle newLevel initialization for descending order.
+	if pq.order == DESC {
+		newLevel = 255
+	}
 
-		// If this level is lower than the current level based on ordering and contains items.
-		if iu8 >= priority && pq.levels[iu8].length() > 0 {
-			priority = iu8
-			newLength := pq.levels[iu8].length()
+	// For condition expression.
+	condExpr := func(level int) bool {
+		if pq.order == ASC {
+			return level <= 255
+		}
+		return level >= 0
+	}
 
-			// If the offset is within the current priority level.
-			if length+newLength >= offset+1 {
-				return pq.getItemByPriorityID(priority, offset-length+1)
-			}
-
-			length += newLength
+	// For loop expression.
+	loopExpr := func(level *int) {
+		if pq.order == ASC {
+			*level++
+		} else if pq.order == DESC {
+			*level--
 		}
 	}
 
-	return nil, ErrOutOfBounds
-}
-
-// findOffsetDesc finds the given offset from the current queue
-// position based on descending order.
-func (pq *PriorityQueue) findOffsetDesc(offset uint64) (*PriorityItem, error) {
-	var length uint64
-	var priority uint8 = pq.curLevel
+	// Level comparison.
+	cmpLevels := func(newLevel, curLevel uint8) bool {
+		if pq.order == ASC {
+			return newLevel >= curLevel
+		}
+		return newLevel <= curLevel
+	}
 
 	// Loop through the priority levels.
-	for i := 255; i >= 0; i-- {
-		iu8 := uint8(i)
-
+	for ; condExpr(newLevel); loopExpr(&newLevel) {
 		// If this level is lower than the current level based on ordering and contains items.
-		if iu8 <= priority && pq.levels[iu8].length() > 0 {
-			priority = iu8
-			newLength := pq.levels[iu8].length()
+		if cmpLevels(uint8(newLevel), curLevel) && pq.levels[uint8(newLevel)].length() > 0 {
+			curLevel = uint8(newLevel)
+			newLength := pq.levels[curLevel].length()
 
 			// If the offset is within the current priority level.
 			if length+newLength >= offset+1 {
-				return pq.getItemByPriorityID(priority, offset-length+1)
+				return pq.getItemByPriorityID(curLevel, offset-length+1)
 			}
 
 			length += newLength
