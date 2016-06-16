@@ -119,7 +119,7 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 		return nil, ErrDBClosed
 	}
 
-	// Try to get the next item in the current priority level.
+	// Try to get the next item.
 	item, err := pq.getNextItem()
 	if err != nil {
 		return item, err
