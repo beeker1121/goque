@@ -1,7 +1,9 @@
 package goque
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 )
 
 // Item represents an entry in either a stack or queue.
@@ -22,9 +24,28 @@ func NewItemString(value string) *Item {
 	return NewItem([]byte(value))
 }
 
+// NewItemObject is a helper function for NewItem that accepts any
+// value which it'll be marshalled using encoding/gob
+func NewItemObject(value interface{}) (*Item, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+	return &Item{Value: buffer.Bytes()}, nil
+}
+
 // ToString returns the item value as a string.
 func (i *Item) ToString() string {
 	return string(i.Value)
+}
+
+// Unmarshall unmarshalls the item value using encoding/gob
+func (i *Item) Unmarshall(value interface{}) error {
+	var buffer bytes.Buffer
+	dec := gob.NewDecoder(&buffer)
+	buffer.Write(i.Value)
+	return dec.Decode(value)
 }
 
 // PriorityItem represents an entry in a priority queue.
