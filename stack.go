@@ -215,15 +215,11 @@ func (s *Stack) init() error {
 	// Set stack head to the last item.
 	if iter.Last() {
 		s.head = keyToID(iter.Key())
-	} else {
-		s.head = 0
 	}
 
 	// Set stack tail to the first item.
 	if iter.First() {
 		s.tail = keyToID(iter.Key()) - 1
-	} else {
-		s.tail = 0
 	}
 
 	return iter.Error()

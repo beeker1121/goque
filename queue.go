@@ -215,15 +215,11 @@ func (q *Queue) init() error {
 	// Set queue head to the first item.
 	if iter.First() {
 		q.head = keyToID(iter.Key()) - 1
-	} else {
-		q.head = 0
 	}
 
 	// Set queue tail to the last item.
 	if iter.Last() {
 		q.tail = keyToID(iter.Key())
-	} else {
-		q.tail = 0
 	}
 
 	return iter.Error()
