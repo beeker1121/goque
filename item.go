@@ -25,14 +25,14 @@ func NewItemString(value string) *Item {
 }
 
 // NewItemObject is a helper function for NewItem that accepts any
-// value which it'll be marshalled using encoding/gob
+// value which it'll be marshalled using encoding/gob.
 func NewItemObject(value interface{}) (*Item, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 	if err := enc.Encode(value); err != nil {
 		return nil, err
 	}
-	return &Item{Value: buffer.Bytes()}, nil
+	return NewItem(buffer.Bytes()), nil
 }
 
 // ToString returns the item value as a string.
@@ -40,11 +40,10 @@ func (i *Item) ToString() string {
 	return string(i.Value)
 }
 
-// Unmarshall unmarshalls the item value using encoding/gob
+// Unmarshall unmarshalls the item value using encoding/gob.
 func (i *Item) Unmarshall(value interface{}) error {
-	var buffer bytes.Buffer
-	dec := gob.NewDecoder(&buffer)
-	buffer.Write(i.Value)
+	buffer := bytes.NewBuffer(i.Value)
+	dec := gob.NewDecoder(buffer)
 	return dec.Decode(value)
 }
 
@@ -67,9 +66,27 @@ func NewPriorityItemString(value string, priority uint8) *PriorityItem {
 	return NewPriorityItem([]byte(value), priority)
 }
 
+// NewPriorityItemObject is a helper function for NewPriorityItem
+// that accepts any value which it'll be marshalled using encoding/gob.
+func NewPriorityItemObject(value interface{}, priority uint8) (*PriorityItem, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+	return NewPriorityItem(buffer.Bytes(), priority), nil
+}
+
 // ToString returns the priority item value as a string.
 func (pi *PriorityItem) ToString() string {
 	return string(pi.Value)
+}
+
+// Unmarshall unmarshalls the item value using encoding/gob.
+func (pi *PriorityItem) Unmarshall(value interface{}) error {
+	buffer := bytes.NewBuffer(pi.Value)
+	dec := gob.NewDecoder(buffer)
+	return dec.Decode(value)
 }
 
 // idToKey converts and returns the given ID to a key.
