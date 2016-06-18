@@ -1,4 +1,4 @@
-// Goque provides embedded, disk-based implementations of stack, queue, and priority queue data structures.
+// Package goque provides embedded, disk-based implementations of stack, queue, and priority queue data structures.
 //
 // Motivation for creating this project was the need for a persistent priority queue that remained performant while growing well beyond the available memory of a given machine. While there are many packages for Go offering queues, they all seem to be memory based and/or standalone solutions that are not embeddable within an application.
 //
