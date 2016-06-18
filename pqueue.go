@@ -1,6 +1,8 @@
 package goque
 
 import (
+	"bytes"
+	"encoding/gob"
 	"os"
 	"sync"
 
@@ -234,6 +236,18 @@ func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
 // as a string rather than a byte slice.
 func (pq *PriorityQueue) UpdateString(item *PriorityItem, newValue string) error {
 	return pq.Update(item, []byte(newValue))
+}
+
+// UpdateObject is a helper function for Update that accepts any
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
+func (pq *PriorityQueue) UpdateObject(item *PriorityItem, newValue interface{}) error {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(newValue); err != nil {
+		return err
+	}
+	return pq.Update(item, buffer.Bytes())
 }
 
 // Length returns the total number of items in the priority queue.

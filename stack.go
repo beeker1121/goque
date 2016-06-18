@@ -1,6 +1,8 @@
 package goque
 
 import (
+	"bytes"
+	"encoding/gob"
 	"os"
 	"sync"
 
@@ -159,6 +161,18 @@ func (s *Stack) Update(item *Item, newValue []byte) error {
 // as a string rather than a byte slice.
 func (s *Stack) UpdateString(item *Item, newValue string) error {
 	return s.Update(item, []byte(newValue))
+}
+
+// UpdateObject is a helper function for Update that accepts any
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
+func (s *Stack) UpdateObject(item *Item, newValue interface{}) error {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(newValue); err != nil {
+		return err
+	}
+	return s.Update(item, buffer.Bytes())
 }
 
 // Length returns the total number of items in the stack.

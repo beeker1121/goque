@@ -321,6 +321,71 @@ func TestStackUpdateString(t *testing.T) {
 	}
 }
 
+func TestStackUpdateObject(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	s, err := OpenStack(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Drop()
+
+	type object struct {
+		Value int
+	}
+
+	for i := 1; i <= 10; i++ {
+		item, err := NewItemObject(object{i})
+		if err != nil {
+			t.Error(err)
+		}
+		if err = s.Push(item); err != nil {
+			t.Error(err)
+		}
+	}
+
+	item, err := s.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompObj := object{3}
+	newCompObj := object{33}
+
+	var obj object
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != oldCompObj {
+		t.Errorf("Expected object to be '%+v', got '%+v'", oldCompObj, obj)
+	}
+
+	if err = s.UpdateObject(item, newCompObj); err != nil {
+		t.Error(err)
+	}
+
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected current object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+
+	newItem, err := s.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := newItem.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
 func TestStackEmpty(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	s, err := OpenStack(file)

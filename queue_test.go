@@ -321,6 +321,71 @@ func TestQueueUpdateString(t *testing.T) {
 	}
 }
 
+func TestQueueUpdateObject(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	q, err := OpenQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer q.Drop()
+
+	type object struct {
+		Value int
+	}
+
+	for i := 1; i <= 10; i++ {
+		item, err := NewItemObject(object{i})
+		if err != nil {
+			t.Error(err)
+		}
+		if err = q.Enqueue(item); err != nil {
+			t.Error(err)
+		}
+	}
+
+	item, err := q.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompObj := object{3}
+	newCompObj := object{33}
+
+	var obj object
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != oldCompObj {
+		t.Errorf("Expected object to be '%+v', got '%+v'", oldCompObj, obj)
+	}
+
+	if err = q.UpdateObject(item, newCompObj); err != nil {
+		t.Error(err)
+	}
+
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected current object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+
+	newItem, err := q.PeekByID(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := newItem.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
 func TestQueueEmpty(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	q, err := OpenQueue(file)

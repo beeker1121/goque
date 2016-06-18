@@ -49,6 +49,8 @@ Create a new item:
 item := goque.NewItem([]byte("item value"))
 // or
 item := goque.NewItemString("item value")
+// or
+item, err := goque.NewItemObject(Object{X:1})
 ```
 
 Push an item:
@@ -62,10 +64,16 @@ Pop an item:
 ```go
 item, err := s.Pop()
 ...
-fmt.Println(item.ID)       // 1
-fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
-fmt.Println(item.ToString) // item value
+fmt.Println(item.ID)    // 1
+fmt.Println(item.Key)   // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
+
+fmt.Println(item.ToString()) // item value
+
+var obj Object
+err := item.ToObject(&obj)
+...
+fmt.Printf("%+v\n", obj) // {X:1}
 ```
 
 Peek the next stack item:
@@ -84,6 +92,8 @@ Update an item in the stack:
 err := s.Update(item, []byte("new value"))
 // or
 err := s.UpdateString(item, "new value")
+// or
+err := s.UpdateObject(item, Object{X:2})
 ```
 
 Delete the stack and underlying database:
@@ -112,6 +122,8 @@ Create a new item:
 item := goque.NewItem([]byte("item value"))
 // or
 item := goque.NewItemString("item value")
+// or
+item, err := goque.NewItemObject(Object{X:1})
 ```
 
 Enqueue an item:
@@ -128,7 +140,13 @@ item, err := q.Dequeue()
 fmt.Println(item.ID)       // 1
 fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
 fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
-fmt.Println(item.ToString) // item value
+
+fmt.Println(item.ToString()) // item value
+
+var obj Object
+err := item.ToObject(&obj)
+...
+fmt.Printf("%+v\n", obj) // {X:1}
 ```
 
 Peek the next queue item:
@@ -147,6 +165,8 @@ Update an item in the queue:
 err := q.Update(item, []byte("new value"))
 // or
 err := q.UpdateString(item, "new value")
+// or
+err := q.UpdateObject(item, Object{X:2})
 ```
 
 Delete the queue and underlying database:
@@ -175,6 +195,8 @@ Create a new item:
 item := goque.NewPriorityItem([]byte("item value"), 0)
 // or
 item := goque.NewPriorityItemString("item value", 0)
+// or
+item, err := goque.NewPriorityItemObject(Object{X:1}, 0)
 ```
 
 Enqueue an item:
@@ -194,7 +216,13 @@ fmt.Println(item.ID)       // 1
 fmt.Println(item.Priority) // 0
 fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
 fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
-fmt.Println(item.ToString) // item value
+
+fmt.Println(item.ToString()) // item value
+
+var obj Object
+err := item.ToObject(&obj)
+...
+fmt.Printf("%+v\n", obj) // {X:1}
 ```
 
 Peek the next priority queue item:
@@ -213,6 +241,8 @@ Update an item in the priority queue:
 err := pq.Update(item, []byte("new value"))
 // or
 err := pq.UpdateString(item, "new value")
+// or
+err := pq.UpdateObject(item, Object{X:2})
 ```
 
 Delete the priority queue and underlying database:

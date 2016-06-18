@@ -689,6 +689,82 @@ func TestPriorityQueueUpdateString(t *testing.T) {
 	}
 }
 
+func TestPriorityQueueUpdateObject(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	type object struct {
+		Priority uint8
+		Value    int
+	}
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item, err := NewPriorityItemObject(object{uint8(p), i}, uint8(p))
+			if err != nil {
+				t.Error(err)
+			}
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompObj := object{0, 3}
+	newCompObj := object{0, 33}
+
+	var obj object
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != oldCompObj {
+		t.Errorf("Expected object to be '%+v', got '%+v'", oldCompObj, obj)
+	}
+
+	if err = pq.UpdateObject(item, newCompObj); err != nil {
+		t.Error(err)
+	}
+
+	if item.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", item.Priority)
+	}
+
+	if err := item.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected current object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+
+	newItem, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if newItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", newItem.Priority)
+	}
+
+	if err := newItem.ToObject(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if obj != newCompObj {
+		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
 func TestPriorityQueueHigherPriorityAsc(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
