@@ -25,7 +25,8 @@ func NewItemString(value string) *Item {
 }
 
 // NewItemObject is a helper function for NewItem that accepts any
-// value which it'll be marshalled using encoding/gob.
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
 func NewItemObject(value interface{}) (*Item, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
@@ -40,8 +41,13 @@ func (i *Item) ToString() string {
 	return string(i.Value)
 }
 
-// Unmarshall unmarshalls the item value using encoding/gob.
-func (i *Item) Unmarshall(value interface{}) error {
+// ToObject decodes the item value into the given value type using
+// encoding/gob.
+//
+// The value passed to this method should be a pointer to a variable
+// of the type you wish to decode into. The variable pointed to will
+// hold the decoded object.
+func (i *Item) ToObject(value interface{}) error {
 	buffer := bytes.NewBuffer(i.Value)
 	dec := gob.NewDecoder(buffer)
 	return dec.Decode(value)
@@ -67,7 +73,8 @@ func NewPriorityItemString(value string, priority uint8) *PriorityItem {
 }
 
 // NewPriorityItemObject is a helper function for NewPriorityItem
-// that accepts any value which it'll be marshalled using encoding/gob.
+// that accepts any value type, which is then encoded into a byte
+// slice using encoding/gob.
 func NewPriorityItemObject(value interface{}, priority uint8) (*PriorityItem, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
@@ -82,8 +89,13 @@ func (pi *PriorityItem) ToString() string {
 	return string(pi.Value)
 }
 
-// Unmarshall unmarshalls the item value using encoding/gob.
-func (pi *PriorityItem) Unmarshall(value interface{}) error {
+// ToObject decodes the item value into the given value type using
+// encoding/gob.
+//
+// The value passed to this method should be a pointer to a variable
+// of the type you wish to decode into. The variable pointed to will
+// hold the decoded object.
+func (pi *PriorityItem) ToObject(value interface{}) error {
 	buffer := bytes.NewBuffer(pi.Value)
 	dec := gob.NewDecoder(buffer)
 	return dec.Decode(value)

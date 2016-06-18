@@ -2,11 +2,12 @@ package goque
 
 import "testing"
 
-func TestNewItemObjectAndUnmarshall(t *testing.T) {
+func TestNewItemObject(t *testing.T) {
 	type object struct {
 		X int
 		Y int
 	}
+
 	a := object{X: 1, Y: 2}
 	item, err := NewItemObject(a)
 	if err != nil {
@@ -14,35 +15,37 @@ func TestNewItemObjectAndUnmarshall(t *testing.T) {
 	}
 
 	var b object
-	if err := item.Unmarshall(&b); err != nil {
+	if err := item.ToObject(&b); err != nil {
 		t.Error(err)
 	}
 
 	if a != b {
-		t.Fail()
+		t.Error("Decoded object does not match original object")
 	}
 }
 
-func TestNewPriorityItemObjectAndUnmarshall(t *testing.T) {
+func TestNewPriorityItemObject(t *testing.T) {
 	type object struct {
 		X int
 		Y int
 	}
+
 	a := object{X: 1, Y: 2}
 	item, err := NewPriorityItemObject(a, 42)
 	if err != nil {
 		t.Error(err)
 	}
+
 	if item.Priority != 42 {
-		t.Fail()
+		t.Errorf("Expected priority level to be 42, got %d", item.Priority)
 	}
 
 	var b object
-	if err := item.Unmarshall(&b); err != nil {
+	if err := item.ToObject(&b); err != nil {
 		t.Error(err)
 	}
 
 	if a != b {
-		t.Fail()
+		t.Error("Decoded object does not match original object")
 	}
 }
