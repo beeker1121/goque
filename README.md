@@ -64,12 +64,12 @@ Pop an item:
 ```go
 item, err := s.Pop()
 ...
-fmt.Println(item.ID)    // 1
-fmt.Println(item.Key)   // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
-
+fmt.Println(item.ID)         // 1
+fmt.Println(item.Key)        // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString()) // item value
 
+// Decode to object.
 var obj Object
 err := item.ToObject(&obj)
 ...
@@ -137,12 +137,12 @@ Dequeue an item:
 ```go
 item, err := q.Dequeue()
 ...
-fmt.Println(item.ID)    // 1
-fmt.Println(item.Key)   // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
-
+fmt.Println(item.ID)         // 1
+fmt.Println(item.Key)        // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString()) // item value
 
+// Decode to object.
 var obj Object
 err := item.ToObject(&obj)
 ...
@@ -212,13 +212,13 @@ item, err := pq.Dequeue()
 // or
 item, err := pq.DequeueByPriority(0)
 ...
-fmt.Println(item.ID)       // 1
-fmt.Println(item.Priority) // 0
-fmt.Println(item.Key)      // [0 0 0 0 0 0 0 1]
-fmt.Println(item.Value)    // [105 116 101 109 32 118 97 108 117 101]
-
+fmt.Println(item.ID)         // 1
+fmt.Println(item.Priority)   // 0
+fmt.Println(item.Key)        // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString()) // item value
 
+// Decode to object.
 var obj Object
 err := item.ToObject(&obj)
 ...
