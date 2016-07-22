@@ -153,6 +153,11 @@ func (q *Queue) Update(item *Item, newValue []byte) error {
 		return ErrDBClosed
 	}
 
+	// Check if item exists in queue.
+	if item.ID <= q.head || item.ID > q.tail {
+		return ErrOutOfBounds
+	}
+
 	item.Value = newValue
 	return q.db.Put(item.Key, item.Value, nil)
 }

@@ -194,7 +194,7 @@ func TestPriorityQueueDequeueByPriority(t *testing.T) {
 	}
 
 	if pq.Length() != 50 {
-		t.Errorf("Expected queue length of 1, got %d", pq.Length())
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
 	}
 
 	deqItem, err := pq.DequeueByPriority(3)
@@ -762,6 +762,48 @@ func TestPriorityQueueUpdateObject(t *testing.T) {
 
 	if obj != newCompObj {
 		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
+func TestPriorityQueueUpdateOutOfBounds(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			item := NewPriorityItemString(fmt.Sprintf("value for item %d", i), uint8(p))
+			if err = pq.Enqueue(item); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	if pq.Length() != 50 {
+		t.Errorf("Expected queue length of 50, got %d", pq.Length())
+	}
+
+	deqItem, err := pq.DequeueByPriority(3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if pq.Length() != 49 {
+		t.Errorf("Expected queue length of 49, got %d", pq.Length())
+	}
+
+	if err = pq.Update(deqItem, []byte(`new value`)); err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+
+	deqItem.ID++
+	deqItem.Key = idToKey(deqItem.ID)
+
+	if err = pq.Update(deqItem, []byte(`new value`)); err != nil {
+		t.Error(err)
 	}
 }
 

@@ -105,7 +105,7 @@ func TestStackPop(t *testing.T) {
 		t.Errorf("Expected stack length of 10, got %d", s.Length())
 	}
 
-	deqItem, err := s.Pop()
+	popItem, err := s.Pop()
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,8 +116,8 @@ func TestStackPop(t *testing.T) {
 
 	compStr := "value for item 10"
 
-	if deqItem.ToString() != compStr {
-		t.Errorf("Expected string to be '%s', got '%s'", compStr, deqItem.ToString())
+	if popItem.ToString() != compStr {
+		t.Errorf("Expected string to be '%s', got '%s'", compStr, popItem.ToString())
 	}
 }
 
@@ -383,6 +383,46 @@ func TestStackUpdateObject(t *testing.T) {
 
 	if obj != newCompObj {
 		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
+func TestStackUpdateOutOfBounds(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	s, err := OpenStack(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Drop()
+
+	for i := 1; i <= 10; i++ {
+		item := NewItemString(fmt.Sprintf("value for item %d", i))
+		if err = s.Push(item); err != nil {
+			t.Error(err)
+		}
+	}
+
+	if s.Length() != 10 {
+		t.Errorf("Expected stack length of 10, got %d", s.Length())
+	}
+
+	popItem, err := s.Pop()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if s.Length() != 9 {
+		t.Errorf("Expected stack length of 9, got %d", s.Length())
+	}
+
+	if err = s.Update(popItem, []byte(`new value`)); err != ErrOutOfBounds {
+		t.Errorf("Expected to get stack out of bounds error, got %s", err.Error())
+	}
+
+	popItem.ID--
+	popItem.Key = idToKey(popItem.ID)
+
+	if err = s.Update(popItem, []byte(`new value`)); err != nil {
+		t.Error(err)
 	}
 }
 

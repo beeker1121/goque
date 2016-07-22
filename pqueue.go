@@ -228,6 +228,11 @@ func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
 		return ErrDBClosed
 	}
 
+	// Check if item exists in queue.
+	if item.ID <= pq.levels[item.Priority].head || item.ID > pq.levels[item.Priority].tail {
+		return ErrOutOfBounds
+	}
+
 	item.Value = newValue
 	return pq.db.Put(item.Key, item.Value, nil)
 }

@@ -386,6 +386,46 @@ func TestQueueUpdateObject(t *testing.T) {
 	}
 }
 
+func TestQueueUpdateOutOfBounds(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	q, err := OpenQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer q.Drop()
+
+	for i := 1; i <= 10; i++ {
+		item := NewItemString(fmt.Sprintf("value for item %d", i))
+		if err = q.Enqueue(item); err != nil {
+			t.Error(err)
+		}
+	}
+
+	if q.Length() != 10 {
+		t.Errorf("Expected queue length of 10, got %d", q.Length())
+	}
+
+	deqItem, err := q.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if q.Length() != 9 {
+		t.Errorf("Expected queue length of 9, got %d", q.Length())
+	}
+
+	if err = q.Update(deqItem, []byte(`new value`)); err != ErrOutOfBounds {
+		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+
+	deqItem.ID++
+	deqItem.Key = idToKey(deqItem.ID)
+
+	if err = q.Update(deqItem, []byte(`new value`)); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestQueueEmpty(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	q, err := OpenQueue(file)

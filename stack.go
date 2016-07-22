@@ -153,6 +153,11 @@ func (s *Stack) Update(item *Item, newValue []byte) error {
 		return ErrDBClosed
 	}
 
+	// Check if item exists in stack.
+	if item.ID > s.head || item.ID <= s.tail {
+		return ErrOutOfBounds
+	}
+
 	item.Value = newValue
 	return s.db.Put(item.Key, item.Value, nil)
 }
