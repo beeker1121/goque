@@ -158,6 +158,7 @@ func (q *Queue) Update(item *Item, newValue []byte) error {
 		return ErrOutOfBounds
 	}
 
+	item.Key = idToKey(item.ID)
 	item.Value = newValue
 	return q.db.Put(item.Key, item.Value, nil)
 }

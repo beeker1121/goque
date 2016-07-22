@@ -158,6 +158,7 @@ func (s *Stack) Update(item *Item, newValue []byte) error {
 		return ErrOutOfBounds
 	}
 
+	item.Key = idToKey(item.ID)
 	item.Value = newValue
 	return s.db.Put(item.Key, item.Value, nil)
 }

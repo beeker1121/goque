@@ -233,6 +233,7 @@ func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
 		return ErrOutOfBounds
 	}
 
+	item.Key = pq.generateKey(item.Priority, item.ID)
 	item.Value = newValue
 	return pq.db.Put(item.Key, item.Value, nil)
 }
