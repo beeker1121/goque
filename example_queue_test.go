@@ -16,11 +16,8 @@ func Example_queue() {
 	}
 	defer q.Close()
 
-	// Create a new item.
-	item := goque.NewItem([]byte("item value"))
-
-	// Enqueue the item.
-	err = q.Enqueue(item)
+	// Enqueue an item.
+	item, err := q.Enqueue([]byte("item value"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -32,7 +29,7 @@ func Example_queue() {
 	fmt.Println(item.ToString()) // item value
 
 	// Change the item value in the queue.
-	err = q.Update(item, []byte("new item value"))
+	item, err = q.Update(item.ID, []byte("new item value"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -48,4 +45,7 @@ func Example_queue() {
 	}
 
 	fmt.Println(deqItem.ToString()) // new item value
+
+	// Delete the queue and its database.
+	q.Drop()
 }

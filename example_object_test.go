@@ -22,39 +22,34 @@ func Example_object() {
 		Y int
 	}
 
-	// Create a new item with our struct.
-	item, err := goque.NewItemObject(object{X: 1, Y: 2})
+	// Enqueue an object.
+	item, err := q.EnqueueObject(object{X: 1, Y: 2})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// Enqueue the item.
-	err = q.Enqueue(item)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	fmt.Println(item.ID)  // 1
+	fmt.Println(item.Key) // [0 0 0 0 0 0 0 1]
 
-	fmt.Println(item.ID)    // 1
-	fmt.Println(item.Key)   // [0 0 0 0 0 0 0 1]
-	fmt.Println(item.Value) // [105 116 101 109 32 118 97 108 117 101]
-
-	// Dequeue the item.
+	// Dequeue an item.
 	deqItem, err := q.Dequeue()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// Create a variable to hold our decoded struct in.
+	// Create variable to hold our object in.
 	var obj object
 
-	// Decode the item into our struct type.
+	// Decode item into our struct type.
 	if err := deqItem.ToObject(&obj); err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	fmt.Printf("%+v\n", obj) // {X:1 Y:2}
+
+	// Delete the queue and its database.
+	q.Drop()
 }

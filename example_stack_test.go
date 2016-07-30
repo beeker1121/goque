@@ -16,11 +16,8 @@ func Example_stack() {
 	}
 	defer s.Close()
 
-	// Create a new item.
-	item := goque.NewItem([]byte("item value"))
-
-	// Push it onto the stack.
-	err = s.Push(item)
+	// Push an item onto the stack.
+	item, err := s.Push([]byte("item value"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -32,7 +29,7 @@ func Example_stack() {
 	fmt.Println(item.ToString()) // item value
 
 	// Change the item value in the stack.
-	err = s.Update(item, []byte("new item value"))
+	item, err = s.Update(item.ID, []byte("new item value"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -48,4 +45,7 @@ func Example_stack() {
 	}
 
 	fmt.Println(popItem.ToString()) // new item value
+
+	// Delete the stack and its database.
+	s.Drop()
 }

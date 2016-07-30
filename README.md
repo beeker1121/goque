@@ -6,6 +6,8 @@ Motivation for creating this project was the need for a persistent priority queu
 
 Instead of using an in-memory heap structure to store data, everything is stored using the [Go port of LevelDB](https://github.com/syndtr/goleveldb). This results in very little memory being used no matter the size of the database, while read and write performance remains near constant.
 
+**IMPORTANT UPDATE: Goque has been updated to v2, which introduces a completely new API for the Enqueue, Push, and Update methods. Please refer the [v2 release](https://github.com/beeker1121/goque/releases/tag/v2.0.0) for more information on exactly what has been changed. The prior API can still be found at [release v1.0.2](https://github.com/beeker1121/goque/releases/tag/v1.0.2).**
+
 ## Features
 
 - Provides stack (LIFO), queue (FIFO), and priority queue structures.
@@ -43,20 +45,14 @@ s, err := goque.OpenStack("data_dir")
 defer s.Close()
 ```
 
-Create a new item:
-
-```go
-item := goque.NewItem([]byte("item value"))
-// or
-item := goque.NewItemString("item value")
-// or
-item, err := goque.NewItemObject(Object{X:1})
-```
-
 Push an item:
 
 ```go
-err := s.Push(item)
+item, err := s.Push([]byte("item value"))
+// or
+item, err := s.PushString("item value")
+// or
+item, err := s.PushObject(Object{X:1})
 ```
 
 Pop an item:
@@ -89,11 +85,11 @@ item, err := s.PeekByID(1)
 Update an item in the stack:
 
 ```go
-err := s.Update(item, []byte("new value"))
+item, err := s.Update(1, []byte("new value"))
 // or
-err := s.UpdateString(item, "new value")
+item, err := s.UpdateString(1, "new value")
 // or
-err := s.UpdateObject(item, Object{X:2})
+item, err := s.UpdateObject(1, Object{X:2})
 ```
 
 Delete the stack and underlying database:
@@ -116,20 +112,14 @@ q, err := goque.OpenQueue("data_dir")
 defer q.Close()
 ```
 
-Create a new item:
-
-```go
-item := goque.NewItem([]byte("item value"))
-// or
-item := goque.NewItemString("item value")
-// or
-item, err := goque.NewItemObject(Object{X:1})
-```
-
 Enqueue an item:
 
 ```go
-err := q.Enqueue(item)
+item, err := q.Enqueue([]byte("item value"))
+// or
+item, err := q.EnqueueString("item value")
+// or
+item, err := q.EnqueueObject(Object{X:1})
 ```
 
 Dequeue an item:
@@ -162,11 +152,11 @@ item, err := q.PeekByID(1)
 Update an item in the queue:
 
 ```go
-err := q.Update(item, []byte("new value"))
+item, err := q.Update(1, []byte("new value"))
 // or
-err := q.UpdateString(item, "new value")
+item, err := q.UpdateString(1, "new value")
 // or
-err := q.UpdateObject(item, Object{X:2})
+item, err := q.UpdateObject(1, Object{X:2})
 ```
 
 Delete the queue and underlying database:
@@ -202,7 +192,11 @@ item, err := goque.NewPriorityItemObject(Object{X:1}, 0)
 Enqueue an item:
 
 ```go
-err := pq.Enqueue(item)
+item, err := pq.Enqueue(0, []byte("item value"))
+// or
+item, err := pq.EnqueueString(0, "item value")
+// or
+item, err := pq.EnqueueObject(0, Object{X:1})
 ```
 
 Dequeue an item:
@@ -214,7 +208,7 @@ item, err := pq.DequeueByPriority(0)
 ...
 fmt.Println(item.ID)         // 1
 fmt.Println(item.Priority)   // 0
-fmt.Println(item.Key)        // [0 0 0 0 0 0 0 1]
+fmt.Println(item.Key)        // [0 58 0 0 0 0 0 0 0 1]
 fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString()) // item value
 
@@ -238,11 +232,11 @@ item, err := pq.PeekByPriorityID(0, 1)
 Update an item in the priority queue:
 
 ```go
-err := pq.Update(item, []byte("new value"))
+item, err := pq.Update(0, 1, []byte("new value"))
 // or
-err := pq.UpdateString(item, "new value")
+item, err := pq.UpdateString(0, 1, "new value")
 // or
-err := pq.UpdateObject(item, Object{X:2})
+item, err := pq.UpdateObject(0, 1, Object{X:2})
 ```
 
 Delete the priority queue and underlying database:
@@ -258,12 +252,13 @@ Benchmarks were run on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.7
 ```
 go test -bench=.
 PASS
-BenchmarkPriorityQueueEnqueue     200000              8102 ns/op             442 B/op          5 allocs/op
-BenchmarkPriorityQueueDequeue     200000             18602 ns/op            1161 B/op         17 allocs/op
-BenchmarkQueueEnqueue             200000              7582 ns/op             399 B/op          5 allocs/op
-BenchmarkQueueDequeue             200000             19317 ns/op            1071 B/op         17 allocs/op
-BenchmarkStackPush                200000              7847 ns/op             399 B/op          5 allocs/op
-BenchmarkStackPop                 200000             18950 ns/op            1081 B/op         17 allocs/op
+BenchmarkPriorityQueueEnqueue     200000              8104 ns/op             522 B/op          7 allocs/op
+BenchmarkPriorityQueueDequeue     200000             18622 ns/op            1166 B/op         17 allocs/op
+BenchmarkQueueEnqueue             200000              8049 ns/op             487 B/op          7 allocs/op
+BenchmarkQueueDequeue             200000             18970 ns/op            1089 B/op         17 allocs/op
+BenchmarkStackPush                200000              8145 ns/op             487 B/op          7 allocs/op
+BenchmarkStackPop                 200000             18947 ns/op            1097 B/op         17 allocs/op
+ok      github.com/beeker1121/goque     22.549s
 ```
 
 ## Thanks
@@ -273,3 +268,4 @@ BenchmarkStackPop                 200000             18950 ns/op            1081
 **connor4312** ([https://github.com/connor4312](https://github.com/connor4312)) - Recommending BoltDB/LevelDB, helping with structure  
 **bwmarrin** ([https://github.com/bwmarrin](https://github.com/bwmarrin)) - Recommending BoltDB/LevelDB  
 **zeroZshadow** ([https://github.com/zeroZshadow](https://github.com/zeroZshadow)) - Code review and optimization  
+**nstafie** ([https://github.com/nstafie](https://github.com/nstafie)) - Help with structure
