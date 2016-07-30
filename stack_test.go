@@ -15,7 +15,7 @@ func TestStackClose(t *testing.T) {
 	}
 	defer s.Drop()
 
-	if err = s.Push(NewItemString("value")); err != nil {
+	if _, err = s.PushString("value"); err != nil {
 		t.Error(err)
 	}
 
@@ -75,8 +75,7 @@ func TestStackPush(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -95,8 +94,7 @@ func TestStackPop(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -131,7 +129,7 @@ func TestStackPeek(t *testing.T) {
 
 	compStr := "value for item"
 
-	if err = s.Push(NewItemString(compStr)); err != nil {
+	if _, err = s.PushString(compStr); err != nil {
 		t.Error(err)
 	}
 
@@ -158,8 +156,7 @@ func TestStackPeekByOffset(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -209,8 +206,7 @@ func TestStackPeekByID(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -240,8 +236,7 @@ func TestStackUpdate(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -258,11 +253,12 @@ func TestStackUpdate(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
 	}
 
-	if err = s.Update(item, []byte(newCompStr)); err != nil {
+	updatedItem, err := s.Update(item.ID, []byte(newCompStr))
+	if err != nil {
 		t.Error(err)
 	}
 
-	if item.ToString() != newCompStr {
+	if updatedItem.ToString() != newCompStr {
 		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
 	}
 
@@ -285,8 +281,7 @@ func TestStackUpdateString(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -303,11 +298,12 @@ func TestStackUpdateString(t *testing.T) {
 		t.Errorf("Expected string to be '%s', got '%s'", oldCompStr, item.ToString())
 	}
 
-	if err = s.UpdateString(item, newCompStr); err != nil {
+	updatedItem, err := s.UpdateString(item.ID, newCompStr)
+	if err != nil {
 		t.Error(err)
 	}
 
-	if item.ToString() != newCompStr {
+	if updatedItem.ToString() != newCompStr {
 		t.Errorf("Expected current item value to be '%s', got '%s'", newCompStr, item.ToString())
 	}
 
@@ -334,11 +330,7 @@ func TestStackUpdateObject(t *testing.T) {
 	}
 
 	for i := 1; i <= 10; i++ {
-		item, err := NewItemObject(object{i})
-		if err != nil {
-			t.Error(err)
-		}
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushObject(object{i}); err != nil {
 			t.Error(err)
 		}
 	}
@@ -360,11 +352,12 @@ func TestStackUpdateObject(t *testing.T) {
 		t.Errorf("Expected object to be '%+v', got '%+v'", oldCompObj, obj)
 	}
 
-	if err = s.UpdateObject(item, newCompObj); err != nil {
+	updatedItem, err := s.UpdateObject(item.ID, newCompObj)
+	if err != nil {
 		t.Error(err)
 	}
 
-	if err := item.ToObject(&obj); err != nil {
+	if err := updatedItem.ToObject(&obj); err != nil {
 		t.Error(err)
 	}
 
@@ -395,8 +388,7 @@ func TestStackUpdateOutOfBounds(t *testing.T) {
 	defer s.Drop()
 
 	for i := 1; i <= 10; i++ {
-		item := NewItemString(fmt.Sprintf("value for item %d", i))
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString(fmt.Sprintf("value for item %d", i)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -414,14 +406,11 @@ func TestStackUpdateOutOfBounds(t *testing.T) {
 		t.Errorf("Expected stack length of 9, got %d", s.Length())
 	}
 
-	if err = s.Update(popItem, []byte(`new value`)); err != ErrOutOfBounds {
+	if _, err = s.Update(popItem.ID, []byte(`new value`)); err != ErrOutOfBounds {
 		t.Errorf("Expected to get stack out of bounds error, got %s", err.Error())
 	}
 
-	popItem.ID--
-	popItem.Key = idToKey(popItem.ID)
-
-	if err = s.Update(popItem, []byte(`new value`)); err != nil {
+	if _, err = s.Update(popItem.ID-1, []byte(`new value`)); err != nil {
 		t.Error(err)
 	}
 }
@@ -434,7 +423,7 @@ func TestStackEmpty(t *testing.T) {
 	}
 	defer s.Drop()
 
-	err = s.Push(NewItemString("value for item"))
+	_, err = s.PushString("value for item")
 	if err != nil {
 		t.Error(err)
 	}
@@ -458,7 +447,7 @@ func TestStackOutOfBounds(t *testing.T) {
 	}
 	defer s.Drop()
 
-	err = s.Push(NewItemString("value for item"))
+	_, err = s.PushString("value for item")
 	if err != nil {
 		t.Error(err)
 	}
@@ -478,14 +467,11 @@ func BenchmarkStackPush(b *testing.B) {
 	}
 	defer s.Drop()
 
-	// Create dummy data for pushing
-	item := NewItemString("value")
-
 	b.ResetTimer()
 	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
-		_ = s.Push(item)
+		_, _ = s.PushString("value")
 	}
 }
 
@@ -499,9 +485,8 @@ func BenchmarkStackPop(b *testing.B) {
 	defer s.Drop()
 
 	// Fill with dummy data
-	item := NewItemString("value")
 	for n := 0; n < b.N; n++ {
-		if err = s.Push(item); err != nil {
+		if _, err = s.PushString("value"); err != nil {
 			b.Error(err)
 		}
 	}

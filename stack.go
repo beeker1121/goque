@@ -54,26 +54,49 @@ func OpenStack(dataDir string) (*Stack, error) {
 }
 
 // Push adds an item to the stack.
-func (s *Stack) Push(item *Item) error {
+func (s *Stack) Push(value []byte) (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
 
 	// Check if stack is closed.
 	if !s.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
-	// Set item ID and key.
-	item.ID = s.head + 1
-	item.Key = idToKey(item.ID)
+	// Create new Item.
+	item := &Item{
+		ID:    s.head + 1,
+		Key:   idToKey(s.head + 1),
+		Value: value,
+	}
 
 	// Add it to the stack.
-	err := s.db.Put(item.Key, item.Value, nil)
-	if err == nil {
-		s.head++
+	if err := s.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
 	}
 
-	return err
+	// Increment head position.
+	s.head++
+
+	return item, nil
+}
+
+// PushString is a helper function for Push that accepts a
+// value as a string rather than a byte slice.
+func (s *Stack) PushString(value string) (*Item, error) {
+	return s.Push([]byte(value))
+}
+
+// PushObject is a helper function for Push that accepts any
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
+func (s *Stack) PushObject(value interface{}) (*Item, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+	return s.Push(buffer.Bytes())
 }
 
 // Pop removes the next item in the stack and returns it.
@@ -89,15 +112,15 @@ func (s *Stack) Pop() (*Item, error) {
 	// Try to get the next item in the stack.
 	item, err := s.getItemByID(s.head)
 	if err != nil {
-		return item, err
+		return nil, err
 	}
 
 	// Remove this item from the stack.
 	if err := s.db.Delete(item.Key, nil); err != nil {
-		return item, err
+		return nil, err
 	}
 
-	// Decrement position.
+	// Decrement head position.
 	s.head--
 
 	return item, nil
@@ -144,41 +167,51 @@ func (s *Stack) PeekByID(id uint64) (*Item, error) {
 }
 
 // Update updates an item in the stack without changing its position.
-func (s *Stack) Update(item *Item, newValue []byte) error {
+func (s *Stack) Update(id uint64, newValue []byte) (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
 
 	// Check if stack is closed.
 	if !s.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
 	// Check if item exists in stack.
-	if item.ID > s.head || item.ID <= s.tail {
-		return ErrOutOfBounds
+	if id > s.head || id <= s.tail {
+		return nil, ErrOutOfBounds
 	}
 
-	item.Key = idToKey(item.ID)
-	item.Value = newValue
-	return s.db.Put(item.Key, item.Value, nil)
+	// Create new Item.
+	item := &Item{
+		ID:    id,
+		Key:   idToKey(id),
+		Value: newValue,
+	}
+
+	// Update this item in the stack.
+	if err := s.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }
 
 // UpdateString is a helper function for Update that accepts a value
 // as a string rather than a byte slice.
-func (s *Stack) UpdateString(item *Item, newValue string) error {
-	return s.Update(item, []byte(newValue))
+func (s *Stack) UpdateString(id uint64, newValue string) (*Item, error) {
+	return s.Update(id, []byte(newValue))
 }
 
 // UpdateObject is a helper function for Update that accepts any
 // value type, which is then encoded into a byte slice using
 // encoding/gob.
-func (s *Stack) UpdateObject(item *Item, newValue interface{}) error {
+func (s *Stack) UpdateObject(id uint64, newValue interface{}) (*Item, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 	if err := enc.Encode(newValue); err != nil {
-		return err
+		return nil, err
 	}
-	return s.Update(item, buffer.Bytes())
+	return s.Update(id, buffer.Bytes())
 }
 
 // Length returns the total number of items in the stack.
@@ -219,11 +252,14 @@ func (s *Stack) getItemByID(id uint64) (*Item, error) {
 		return nil, ErrOutOfBounds
 	}
 
+	// Get item from database.
 	var err error
 	item := &Item{ID: id, Key: idToKey(id)}
-	item.Value, err = s.db.Get(item.Key, nil)
+	if item.Value, err = s.db.Get(item.Key, nil); err != nil {
+		return nil, err
+	}
 
-	return item, err
+	return item, nil
 }
 
 // init initializes the stack data.

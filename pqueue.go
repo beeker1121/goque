@@ -81,34 +81,58 @@ func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
 }
 
 // Enqueue adds an item to the priority queue.
-func (pq *PriorityQueue) Enqueue(item *PriorityItem) error {
+func (pq *PriorityQueue) Enqueue(priority uint8, value []byte) (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
 	// Check if queue is closed.
 	if !pq.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
 	// Get the priorityLevel.
-	level := pq.levels[item.Priority]
+	level := pq.levels[priority]
 
-	// Set item ID and key.
-	item.ID = level.tail + 1
-	item.Key = pq.generateKey(item.Priority, item.ID)
-
-	// Add it to the priority queue.
-	err := pq.db.Put(item.Key, item.Value, nil)
-	if err == nil {
-		level.tail++
-
-		// If this priority level is more important than the curLevel.
-		if pq.cmpAsc(item.Priority) || pq.cmpDesc(item.Priority) {
-			pq.curLevel = item.Priority
-		}
+	// Create new PriorityItem.
+	item := &PriorityItem{
+		ID:       level.tail + 1,
+		Priority: priority,
+		Key:      pq.generateKey(priority, level.tail+1),
+		Value:    value,
 	}
 
-	return err
+	// Add it to the priority queue.
+	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
+	}
+
+	// Increment tail position.
+	level.tail++
+
+	// If this priority level is more important than the curLevel.
+	if pq.cmpAsc(priority) || pq.cmpDesc(priority) {
+		pq.curLevel = priority
+	}
+
+	return item, nil
+}
+
+// EnqueueString is a helper function for Enqueue that accepts a
+// value as a string rather than a byte slice.
+func (pq *PriorityQueue) EnqueueString(priority uint8, value string) (*PriorityItem, error) {
+	return pq.Enqueue(priority, []byte(value))
+}
+
+// EnqueueObject is a helper function for Enqueue that accepts any
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
+func (pq *PriorityQueue) EnqueueObject(priority uint8, value interface{}) (*PriorityItem, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+	return pq.Enqueue(priority, buffer.Bytes())
 }
 
 // Dequeue removes the next item in the priority queue and returns it.
@@ -124,15 +148,15 @@ func (pq *PriorityQueue) Dequeue() (*PriorityItem, error) {
 	// Try to get the next item.
 	item, err := pq.getNextItem()
 	if err != nil {
-		return item, err
+		return nil, err
 	}
 
 	// Remove this item from the priority queue.
 	if err = pq.db.Delete(item.Key, nil); err != nil {
-		return item, err
+		return nil, err
 	}
 
-	// Increment position.
+	// Increment head position.
 	pq.levels[pq.curLevel].head++
 
 	return item, nil
@@ -152,15 +176,15 @@ func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error
 	// Try to get the next item in the given priority level.
 	item, err := pq.getItemByPriorityID(priority, pq.levels[priority].head+1)
 	if err != nil {
-		return item, err
+		return nil, err
 	}
 
 	// Remove this item from the priority queue.
 	if err = pq.db.Delete(item.Key, nil); err != nil {
-		return item, err
+		return nil, err
 	}
 
-	// Increment position.
+	// Increment head position.
 	pq.levels[priority].head++
 
 	return item, nil
@@ -219,41 +243,52 @@ func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityI
 
 // Update updates an item in the priority queue without changing its
 // position.
-func (pq *PriorityQueue) Update(item *PriorityItem, newValue []byte) error {
+func (pq *PriorityQueue) Update(priority uint8, id uint64, newValue []byte) (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
 	// Check if queue is closed.
 	if !pq.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
 	// Check if item exists in queue.
-	if item.ID <= pq.levels[item.Priority].head || item.ID > pq.levels[item.Priority].tail {
-		return ErrOutOfBounds
+	if id <= pq.levels[priority].head || id > pq.levels[priority].tail {
+		return nil, ErrOutOfBounds
 	}
 
-	item.Key = pq.generateKey(item.Priority, item.ID)
-	item.Value = newValue
-	return pq.db.Put(item.Key, item.Value, nil)
+	// Create new PriorityItem.
+	item := &PriorityItem{
+		ID:       id,
+		Priority: priority,
+		Key:      pq.generateKey(priority, id),
+		Value:    newValue,
+	}
+
+	// Update this item in the queue.
+	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }
 
 // UpdateString is a helper function for Update that accepts a value
 // as a string rather than a byte slice.
-func (pq *PriorityQueue) UpdateString(item *PriorityItem, newValue string) error {
-	return pq.Update(item, []byte(newValue))
+func (pq *PriorityQueue) UpdateString(priority uint8, id uint64, newValue string) (*PriorityItem, error) {
+	return pq.Update(priority, id, []byte(newValue))
 }
 
 // UpdateObject is a helper function for Update that accepts any
 // value type, which is then encoded into a byte slice using
 // encoding/gob.
-func (pq *PriorityQueue) UpdateObject(item *PriorityItem, newValue interface{}) error {
+func (pq *PriorityQueue) UpdateObject(priority uint8, id uint64, newValue interface{}) (*PriorityItem, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 	if err := enc.Encode(newValue); err != nil {
-		return err
+		return nil, err
 	}
-	return pq.Update(item, buffer.Bytes())
+	return pq.Update(priority, id, buffer.Bytes())
 }
 
 // Length returns the total number of items in the priority queue.
@@ -407,13 +442,14 @@ func (pq *PriorityQueue) getItemByPriorityID(priority uint8, id uint64) (*Priori
 		return nil, ErrOutOfBounds
 	}
 
+	// Get item from database.
 	var err error
-
-	// Create a new PriorityItem.
 	item := &PriorityItem{ID: id, Priority: priority, Key: pq.generateKey(priority, id)}
-	item.Value, err = pq.db.Get(item.Key, nil)
+	if item.Value, err = pq.db.Get(item.Key, nil); err != nil {
+		return nil, err
+	}
 
-	return item, err
+	return item, nil
 }
 
 // generatePrefix creates the key prefix for the given priority level.

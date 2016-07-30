@@ -54,26 +54,49 @@ func OpenQueue(dataDir string) (*Queue, error) {
 }
 
 // Enqueue adds an item to the queue.
-func (q *Queue) Enqueue(item *Item) error {
+func (q *Queue) Enqueue(value []byte) (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
 
 	// Check if queue is closed.
 	if !q.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
-	// Set item ID and key.
-	item.ID = q.tail + 1
-	item.Key = idToKey(item.ID)
+	// Create new Item.
+	item := &Item{
+		ID:    q.tail + 1,
+		Key:   idToKey(q.tail + 1),
+		Value: value,
+	}
 
 	// Add it to the queue.
-	err := q.db.Put(item.Key, item.Value, nil)
-	if err == nil {
-		q.tail++
+	if err := q.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
 	}
 
-	return err
+	// Increment tail position.
+	q.tail++
+
+	return item, nil
+}
+
+// EnqueueString is a helper function for Enqueue that accepts a
+// value as a string rather than a byte slice.
+func (q *Queue) EnqueueString(value string) (*Item, error) {
+	return q.Enqueue([]byte(value))
+}
+
+// EnqueueObject is a helper function for Enqueue that accepts any
+// value type, which is then encoded into a byte slice using
+// encoding/gob.
+func (q *Queue) EnqueueObject(value interface{}) (*Item, error) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+	return q.Enqueue(buffer.Bytes())
 }
 
 // Dequeue removes the next item in the queue and returns it.
@@ -89,15 +112,15 @@ func (q *Queue) Dequeue() (*Item, error) {
 	// Try to get the next item in the queue.
 	item, err := q.getItemByID(q.head + 1)
 	if err != nil {
-		return item, err
+		return nil, err
 	}
 
 	// Remove this item from the queue.
 	if err := q.db.Delete(item.Key, nil); err != nil {
-		return item, err
+		return nil, err
 	}
 
-	// Increment position.
+	// Increment head position.
 	q.head++
 
 	return item, nil
@@ -144,41 +167,51 @@ func (q *Queue) PeekByID(id uint64) (*Item, error) {
 }
 
 // Update updates an item in the queue without changing its position.
-func (q *Queue) Update(item *Item, newValue []byte) error {
+func (q *Queue) Update(id uint64, newValue []byte) (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
 
 	// Check if queue is closed.
 	if !q.isOpen {
-		return ErrDBClosed
+		return nil, ErrDBClosed
 	}
 
 	// Check if item exists in queue.
-	if item.ID <= q.head || item.ID > q.tail {
-		return ErrOutOfBounds
+	if id <= q.head || id > q.tail {
+		return nil, ErrOutOfBounds
 	}
 
-	item.Key = idToKey(item.ID)
-	item.Value = newValue
-	return q.db.Put(item.Key, item.Value, nil)
+	// Create new Item.
+	item := &Item{
+		ID:    id,
+		Key:   idToKey(id),
+		Value: newValue,
+	}
+
+	// Update this item in the queue.
+	if err := q.db.Put(item.Key, item.Value, nil); err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }
 
 // UpdateString is a helper function for Update that accepts a value
 // as a string rather than a byte slice.
-func (q *Queue) UpdateString(item *Item, newValue string) error {
-	return q.Update(item, []byte(newValue))
+func (q *Queue) UpdateString(id uint64, newValue string) (*Item, error) {
+	return q.Update(id, []byte(newValue))
 }
 
 // UpdateObject is a helper function for Update that accepts any
 // value type, which is then encoded into a byte slice using
 // encoding/gob.
-func (q *Queue) UpdateObject(item *Item, newValue interface{}) error {
+func (q *Queue) UpdateObject(id uint64, newValue interface{}) (*Item, error) {
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
 	if err := enc.Encode(newValue); err != nil {
-		return err
+		return nil, err
 	}
-	return q.Update(item, buffer.Bytes())
+	return q.Update(id, buffer.Bytes())
 }
 
 // Length returns the total number of items in the queue.
@@ -219,11 +252,14 @@ func (q *Queue) getItemByID(id uint64) (*Item, error) {
 		return nil, ErrOutOfBounds
 	}
 
+	// Get item from database.
 	var err error
 	item := &Item{ID: id, Key: idToKey(id)}
-	item.Value, err = q.db.Get(item.Key, nil)
+	if item.Value, err = q.db.Get(item.Key, nil); err != nil {
+		return nil, err
+	}
 
-	return item, err
+	return item, nil
 }
 
 // init initializes the queue data.
