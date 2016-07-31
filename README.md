@@ -199,7 +199,7 @@ item, err := pq.DequeueByPriority(0)
 fmt.Println(item.ID)         // 1
 fmt.Println(item.Priority)   // 0
 fmt.Println(item.Key)        // [0 58 0 0 0 0 0 0 0 1]
-fmt.Println(item.Value)      // [really long byte slice]
+fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
 fmt.Println(item.ToString()) // item value
 
 // Decode to object.
