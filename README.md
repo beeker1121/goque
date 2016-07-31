@@ -179,16 +179,6 @@ pq, err := goque.OpenPriorityQueue("data_dir", goque.ASC)
 defer pq.Close()
 ```
 
-Create a new item:
-
-```go
-item := goque.NewPriorityItem([]byte("item value"), 0)
-// or
-item := goque.NewPriorityItemString("item value", 0)
-// or
-item, err := goque.NewPriorityItemObject(Object{X:1}, 0)
-```
-
 Enqueue an item:
 
 ```go
@@ -209,7 +199,7 @@ item, err := pq.DequeueByPriority(0)
 fmt.Println(item.ID)         // 1
 fmt.Println(item.Priority)   // 0
 fmt.Println(item.Key)        // [0 58 0 0 0 0 0 0 0 1]
-fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
+fmt.Println(item.Value)      // [really long byte slice]
 fmt.Println(item.ToString()) // item value
 
 // Decode to object.
@@ -250,7 +240,7 @@ pq.Drop()
 Benchmarks were run on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.75 GB of RAM):
 
 ```
-go test -bench=.
+$ go test -bench=.
 PASS
 BenchmarkPriorityQueueEnqueue     200000              8104 ns/op             522 B/op          7 allocs/op
 BenchmarkPriorityQueueDequeue     200000             18622 ns/op            1166 B/op         17 allocs/op
