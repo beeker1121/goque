@@ -8,4 +8,4 @@ go:
   - tip
 
 script:
-  - go test -v ./...
+  - go test -v $(go list ./... | grep -v /vendor/)
