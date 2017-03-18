@@ -1,11 +1,13 @@
 language: go
 go:
-  - 1.4
   - 1.5
   - 1.6
   - 1.7
   - 1.8
   - tip
+
+env:
+  - GO15VENDOREXPERIMENT=1
 
 script:
   - go test -v $(go list ./... | grep -v /vendor/)
