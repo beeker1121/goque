@@ -14,6 +14,7 @@ const (
 	goqueStack goqueType = iota
 	goqueQueue
 	goquePriorityQueue
+	goquePrefixQueue
 )
 
 // checkGoqueType checks if the type of Goque data structure

@@ -56,7 +56,7 @@ func OpenPrefixQueue(dataDir string) (*PrefixQueue, error) {
 	}
 
 	// Check if this Goque type can open the requested data directory.
-	ok, err := checkGoqueType(dataDir, goqueQueue)
+	ok, err := checkGoqueType(dataDir, goquePrefixQueue)
 	if err != nil {
 		return nil, err
 	}
