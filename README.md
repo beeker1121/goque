@@ -237,7 +237,9 @@ pq.Drop()
 
 ## Benchmarks
 
-Benchmarks were run on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.75 GB of RAM):
+Benchmarks were ran on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.75 GB of RAM):
+
+Go 1.6:
 
 ```
 $ go test -bench=.
@@ -249,6 +251,22 @@ BenchmarkQueueDequeue             200000             18970 ns/op            1089
 BenchmarkStackPush                200000              8145 ns/op             487 B/op          7 allocs/op
 BenchmarkStackPop                 200000             18947 ns/op            1097 B/op         17 allocs/op
 ok      github.com/beeker1121/goque     22.549s
+```
+
+Go 1.8:
+
+```
+$ go test -bench=.
+BenchmarkPrefixQueueEnqueue        20000             60553 ns/op           10532 B/op        242 allocs/op
+BenchmarkPrefixQueueDequeue        10000            100727 ns/op           18519 B/op        444 allocs/op
+BenchmarkPriorityQueueEnqueue     300000              4781 ns/op             557 B/op          9 allocs/op
+BenchmarkPriorityQueueDequeue     200000             11656 ns/op            1206 B/op         19 allocs/op
+BenchmarkQueueEnqueue             300000              4625 ns/op             513 B/op          9 allocs/op
+BenchmarkQueueDequeue             200000             11537 ns/op            1125 B/op         19 allocs/op
+BenchmarkStackPush                300000              4631 ns/op             513 B/op          9 allocs/op
+BenchmarkStackPop                 200000              9629 ns/op            1116 B/op         19 allocs/op
+PASS
+ok      github.com/beeker1121/goque     18.135s
 ```
 
 ## Thanks
