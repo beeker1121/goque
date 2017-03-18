@@ -1,16 +1,14 @@
 # Goque [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/beeker1121/goque) [![License](http://img.shields.io/badge/license-mit-blue.svg)](https://raw.githubusercontent.com/beeker1121/goque/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/beeker1121/goque)](https://goreportcard.com/report/github.com/beeker1121/goque) [![Build Status](https://travis-ci.org/beeker1121/goque.svg?branch=master)](https://travis-ci.org/beeker1121/goque)
 
-Goque provides embedded, disk-based implementations of stack, queue, and priority queue data structures.
+Goque provides embedded, disk-based implementations of stack and queue data structures.
 
 Motivation for creating this project was the need for a persistent priority queue that remained performant while growing well beyond the available memory of a given machine. While there are many packages for Go offering queues, they all seem to be memory based and/or standalone solutions that are not embeddable within an application.
 
 Instead of using an in-memory heap structure to store data, everything is stored using the [Go port of LevelDB](https://github.com/syndtr/goleveldb). This results in very little memory being used no matter the size of the database, while read and write performance remains near constant.
 
-**IMPORTANT UPDATE: Goque has been updated to v2, which introduces a completely new API for the Enqueue, Push, and Update methods. Please refer the [v2 release](https://github.com/beeker1121/goque/releases/tag/v2.0.0) for more information on exactly what has been changed. The prior API can still be found at [release v1.0.2](https://github.com/beeker1121/goque/releases/tag/v1.0.2).**
-
 ## Features
 
-- Provides stack (LIFO), queue (FIFO), and priority queue structures.
+- Provides stack (LIFO), queue (FIFO), priority queue, and prefix queue structures.
 - Stacks and queues (but not priority queues) are interchangeable.
 - Persistent, disk-based.
 - Optimized for fast inserts and reads.
