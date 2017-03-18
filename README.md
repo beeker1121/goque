@@ -235,6 +235,77 @@ Delete the priority queue and underlying database:
 pq.Drop()
 ```
 
+### Prefix Queue
+
+PrefixQueue is a FIFO (first in, first out) data structure that separates each given prefix into its own queue.
+
+#### Methods
+
+Create or open a prefix queue:
+
+```go
+pq, err := goque.OpenPrefixQueue("data_dir")
+...
+defer q.Close()
+```
+
+Enqueue an item:
+
+```go
+item, err := pq.Enqueue([]byte("prefix"), []byte("item value"))
+// or
+item, err := pq.EnqueueString("prefix", "item value")
+// or
+item, err := pq.EnqueueObject([]byte("prefix"), Object{X:1})
+```
+
+Dequeue an item:
+
+```go
+item, err := pq.Dequeue([]byte("prefix"))
+// or
+item, err := pq.DequeueString("prefix")
+...
+fmt.Println(item.ID)         // 1
+fmt.Println(item.Key)        // [112 114 101 102 105 120 0 0 0 0 0 0 0 0 1]
+fmt.Println(item.Value)      // [105 116 101 109 32 118 97 108 117 101]
+fmt.Println(item.ToString()) // item value
+
+// Decode to object.
+var obj Object
+err := item.ToObject(&obj)
+...
+fmt.Printf("%+v\n", obj) // {X:1}
+```
+
+Peek the next prefix queue item:
+
+```go
+item, err := pq.Peek([]byte("prefix"))
+// or
+item, err := pq.PeekString("prefix")
+// or
+item, err := pq.PeekByID([]byte("prefix"), 1)
+// or
+item, err := pq.PeekByIDString("prefix", 1)
+```
+
+Update an item in the prefix queue:
+
+```go
+item, err := pq.Update([]byte("prefix"), 1, []byte("new value"))
+// or
+item, err := pq.UpdateString("prefix", 1, "new value")
+// or
+item, err := pq.UpdateObject([]byte("prefix"), 1, Object{X:2})
+```
+
+Delete the prefix queue and underlying database:
+
+```go
+pq.Drop()
+```
+
 ## Benchmarks
 
 Benchmarks were ran on a Google Compute Engine n1-standard-1 machine (1 vCPU 3.75 GB of RAM):
