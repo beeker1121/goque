@@ -9,7 +9,7 @@ Instead of using an in-memory heap structure to store data, everything is stored
 ## Features
 
 - Provides stack (LIFO), queue (FIFO), priority queue, and prefix queue structures.
-- Stacks and queues (but not priority queues) are interchangeable.
+- Stacks and queues (but not priority queues or prefix queues) are interchangeable.
 - Persistent, disk-based.
 - Optimized for fast inserts and reads.
 - Goroutine safe.
@@ -244,7 +244,7 @@ Create or open a prefix queue:
 ```go
 pq, err := goque.OpenPrefixQueue("data_dir")
 ...
-defer q.Close()
+defer pq.Close()
 ```
 
 Enqueue an item:

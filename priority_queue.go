@@ -305,29 +305,38 @@ func (pq *PriorityQueue) Length() uint64 {
 }
 
 // Close closes the LevelDB database of the priority queue.
-func (pq *PriorityQueue) Close() {
+func (pq *PriorityQueue) Close() error {
 	pq.Lock()
 	defer pq.Unlock()
 
 	// Check if queue is already closed.
 	if !pq.isOpen {
-		return
+		return nil
 	}
 
-	// Reset head and tail of each priority level.
+	// Close the LevelDB database.
+	if err := pq.db.Close(); err != nil {
+		return err
+	}
+
+	// Reset head and tail of each priority level
+	// and set isOpen to false.
 	for i := 0; i <= 255; i++ {
 		pq.levels[uint8(i)].head = 0
 		pq.levels[uint8(i)].tail = 0
 	}
-
-	pq.db.Close()
 	pq.isOpen = false
+
+	return nil
 }
 
 // Drop closes and deletes the LevelDB database of the priority queue.
-func (pq *PriorityQueue) Drop() {
-	pq.Close()
-	os.RemoveAll(pq.DataDir)
+func (pq *PriorityQueue) Drop() error {
+	if err := pq.Close(); err != nil {
+		return err
+	}
+
+	return os.RemoveAll(pq.DataDir)
 }
 
 // cmpAsc returns wehther the given priority level is higher than the

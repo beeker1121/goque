@@ -286,26 +286,34 @@ func (pq *PrefixQueue) Length() uint64 {
 }
 
 // Close closes the LevelDB database of the prefix queue.
-func (pq *PrefixQueue) Close() {
+func (pq *PrefixQueue) Close() error {
 	pq.Lock()
 	defer pq.Unlock()
 
 	// Check if queue is already closed.
 	if !pq.isOpen {
-		return
+		return nil
 	}
 
-	// Reset the size.
-	pq.size = 0
+	// Close the LevelDB database.
+	if err := pq.db.Close(); err != nil {
+		return err
+	}
 
-	pq.db.Close()
+	// Reset size and set isOpen to false.
+	pq.size = 0
 	pq.isOpen = false
+
+	return nil
 }
 
 // Drop closes and deletes the LevelDB database of the prefix queue.
-func (pq *PrefixQueue) Drop() {
-	pq.Close()
-	os.RemoveAll(pq.DataDir)
+func (pq *PrefixQueue) Drop() error {
+	if err := pq.Close(); err != nil {
+		return err
+	}
+
+	return os.RemoveAll(pq.DataDir)
 }
 
 // getQueue gets the unique queue for the given prefix.
