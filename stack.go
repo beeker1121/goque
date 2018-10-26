@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 // Stack is a standard LIFO (last in, first out) stack.
@@ -250,6 +251,24 @@ func (s *Stack) Drop() error {
 	}
 
 	return os.RemoveAll(s.DataDir)
+}
+
+// CompactStack compacts the underlying DB for the given key range
+// should only used by users who know what they are doing
+func (s *Stack) CompactStack() error {
+	var err error
+
+	// we need to compact the entire range on level db
+	myrange := util.Range{
+		Start: nil,
+		Limit: nil,
+	}
+
+	err = s.db.CompactRange(myrange)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 // getItemByID returns an item, if found, for the given ID.

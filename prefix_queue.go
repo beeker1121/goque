@@ -9,6 +9,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 // prefixDelimiter defines the delimiter used to separate a prefix from an
@@ -314,6 +315,24 @@ func (pq *PrefixQueue) Drop() error {
 	}
 
 	return os.RemoveAll(pq.DataDir)
+}
+
+// CompactQueue compacts the underlying DB for the given key range
+// should only used by users who know what they are doing
+func (pq *PrefixQueue) CompactQueue() error {
+	var err error
+
+	// we need to compact the entire range on level db
+	myrange := util.Range{
+		Start: nil,
+		Limit: nil,
+	}
+
+	err = pq.db.CompactRange(myrange)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 // getQueue gets the unique queue for the given prefix.
