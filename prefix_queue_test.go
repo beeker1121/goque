@@ -119,6 +119,50 @@ func TestPrefixQueueDequeue(t *testing.T) {
 	}
 }
 
+func TestPrefixQueueEncodeDecodePointerJSON(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPrefixQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	type subObject struct {
+		Value *int
+	}
+
+	type object struct {
+		Value     int
+		SubObject subObject
+	}
+
+	val := 0
+	obj := object{
+		Value: 0,
+		SubObject: subObject{
+			Value: &val,
+		},
+	}
+
+	if _, err = pq.EnqueueObjectAsJSON([]byte("prefix"), obj); err != nil {
+		t.Error(err)
+	}
+
+	item, err := pq.Dequeue([]byte("prefix"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	var itemObj object
+	if err := item.ToObjectFromJSON(&itemObj); err != nil {
+		t.Error(err)
+	}
+
+	if *itemObj.SubObject.Value != 0 {
+		t.Errorf("Expected object subobject value to be '0', got '%v'", *itemObj.SubObject.Value)
+	}
+}
+
 func TestPrefixQueuePeek(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPrefixQueue(file)
@@ -326,6 +370,92 @@ func TestPrefixQueueUpdateObject(t *testing.T) {
 
 	if obj != newCompObj {
 		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
+func TestPrefixQueueUpdateObjectAsJSON(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPrefixQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	type subObject struct {
+		Value *int
+	}
+
+	type object struct {
+		Value     int
+		SubObject subObject
+	}
+
+	for i := 1; i <= 10; i++ {
+		obj := object{
+			Value: i,
+			SubObject: subObject{
+				Value: &i,
+			},
+		}
+
+		if _, err = pq.EnqueueObjectAsJSON([]byte("prefix"), obj); err != nil {
+			t.Error(err)
+		}
+	}
+
+	item, err := pq.PeekByIDString("prefix", 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompObjVal := 3
+	oldCompObj := object{
+		Value: 3,
+		SubObject: subObject{
+			Value: &oldCompObjVal,
+		},
+	}
+	newCompObjVal := 33
+	newCompObj := object{
+		Value: 33,
+		SubObject: subObject{
+			Value: &newCompObjVal,
+		},
+	}
+
+	var obj object
+	if err := item.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *oldCompObj.SubObject.Value {
+		t.Errorf("Expected object subobject value to be '%+v', got '%+v'", *oldCompObj.SubObject.Value, *obj.SubObject.Value)
+	}
+
+	updatedItem, err := pq.UpdateObjectAsJSON([]byte("prefix"), item.ID, newCompObj)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := updatedItem.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *newCompObj.SubObject.Value {
+		t.Errorf("Expected current object subobject value to be '%+v', got '%+v'", *newCompObj.SubObject.Value, *obj.SubObject.Value)
+	}
+
+	newItem, err := pq.PeekByIDString("prefix", 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := newItem.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *newCompObj.SubObject.Value {
+		t.Errorf("Expected current object subobject value to be '%+v', got '%+v'", *newCompObj.SubObject.Value, *obj.SubObject.Value)
 	}
 }
 
