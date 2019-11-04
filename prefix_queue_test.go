@@ -538,6 +538,34 @@ func TestPrefixQueueOutOfBounds(t *testing.T) {
 	}
 }
 
+func TestPrefixQueueRecover(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPrefixQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.EnqueueString("prefix", "value for item")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err = pq.Close(); err != nil {
+		t.Error(err)
+	}
+	if err = os.Remove(file + "/MANIFEST-000000"); err != nil {
+		t.Error(err)
+	}
+
+	if pq, err = OpenPrefixQueue(file); !IsCorrupted(err) {
+		t.Errorf("Expected corruption error, got %s", err)
+	}
+	if pq, err = RecoverPrefixQueue(file); err != nil {
+		t.Error(err)
+	}
+}
+
 func BenchmarkPrefixQueueEnqueue(b *testing.B) {
 	// Open test database
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())

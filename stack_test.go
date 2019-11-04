@@ -588,6 +588,34 @@ func TestStackOutOfBounds(t *testing.T) {
 	}
 }
 
+func TestStackRecover(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	s, err := OpenStack(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Drop()
+
+	_, err = s.PushString("value for item")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err = s.Close(); err != nil {
+		t.Error(err)
+	}
+	if err = os.Remove(file + "/MANIFEST-000000"); err != nil {
+		t.Error(err)
+	}
+
+	if s, err = OpenStack(file); !IsCorrupted(err) {
+		t.Errorf("Expected corruption error, got %s", err)
+	}
+	if s, err = RecoverStack(file); err != nil {
+		t.Error(err)
+	}
+}
+
 func BenchmarkStackPush(b *testing.B) {
 	// Open test database
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())

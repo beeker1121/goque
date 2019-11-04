@@ -50,7 +50,22 @@ type PriorityQueue struct {
 // OpenPriorityQueue opens a priority queue if one exists at the given
 // directory. If one does not already exist, a new priority queue is
 // created.
+// If the underlying database is corrupt, an error for which
+// IsCorrupted() returns true is returned.
 func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
+	return openPriorityQueue(dataDir, order, leveldb.OpenFile)
+}
+
+// RecoverPriorityQueue attempts to recover a corrupt priority queue.
+func RecoverPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
+	return openPriorityQueue(dataDir, order, leveldb.RecoverFile)
+}
+
+// openPriorityQueue opens a priority queue if one exists at the given
+// directory using the specified opener. If one does not already exist,
+// a new priority queue is
+// created.
+func openPriorityQueue(dataDir string, order order, open levelDbOpener) (*PriorityQueue, error) {
 	var err error
 
 	// Create a new PriorityQueue.
@@ -62,7 +77,7 @@ func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
 	}
 
 	// Open database for the priority queue.
-	pq.db, err = leveldb.OpenFile(dataDir, nil)
+	pq.db, err = open(dataDir, nil)
 	if err != nil {
 		return pq, err
 	}
