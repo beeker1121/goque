@@ -20,13 +20,13 @@ Instead of using an in-memory heap structure to store data, everything is stored
 Fetch the package from GitHub:
 
 ```sh
-go get github.com/beeker1121/goque
+go get github.com/beeker1121/goque/v2
 ```
 
 Import to your project:
 
 ```go
-import "github.com/beeker1121/goque"
+import "github.com/beeker1121/goque/v2"
 ```
 
 ## Usage
