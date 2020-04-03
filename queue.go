@@ -256,6 +256,8 @@ func (q *Queue) UpdateObjectAsJSON(id uint64, newValue interface{}) (*Item, erro
 
 // Length returns the total number of items in the queue.
 func (q *Queue) Length() uint64 {
+	q.RLock()
+	defer q.RUnlock()
 	return q.tail - q.head
 }
 
@@ -295,7 +297,7 @@ func (q *Queue) Drop() error {
 // getItemByID returns an item, if found, for the given ID.
 func (q *Queue) getItemByID(id uint64) (*Item, error) {
 	// Check if empty or out of bounds.
-	if q.Length() == 0 {
+	if q.tail-q.head == 0 {
 		return nil, ErrEmpty
 	} else if id <= q.head || id > q.tail {
 		return nil, ErrOutOfBounds
