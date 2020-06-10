@@ -1,4 +1,4 @@
-module github.com/beeker1121/goque
+module github.com/beeker1121/goque/v2
 
 go 1.13
 

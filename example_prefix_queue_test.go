@@ -3,7 +3,7 @@ package goque_test
 import (
 	"fmt"
 
-	"github.com/beeker1121/goque"
+	"github.com/beeker1121/goque/v2"
 )
 
 // ExamplePrefixQueue demonstrates the implementation of a Goque queue.
