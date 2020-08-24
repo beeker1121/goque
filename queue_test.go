@@ -8,7 +8,7 @@ import (
 )
 
 func TestQueueClose(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -35,7 +35,7 @@ func TestQueueClose(t *testing.T) {
 }
 
 func TestQueueDrop(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -53,7 +53,7 @@ func TestQueueDrop(t *testing.T) {
 }
 
 func TestQueueIncompatibleType(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	pq, err := OpenPriorityQueue(file, ASC)
 	if err != nil {
 		t.Error(err)
@@ -67,7 +67,7 @@ func TestQueueIncompatibleType(t *testing.T) {
 }
 
 func TestQueueEnqueue(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -86,7 +86,7 @@ func TestQueueEnqueue(t *testing.T) {
 }
 
 func TestQueueDequeue(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -164,7 +164,7 @@ func TestQueueEncodeDecodePointerJSON(t *testing.T) {
 }
 
 func TestQueuePeek(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -192,7 +192,7 @@ func TestQueuePeek(t *testing.T) {
 }
 
 func TestQueuePeekByOffset(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -242,7 +242,7 @@ func TestQueuePeekByOffset(t *testing.T) {
 }
 
 func TestQueuePeekByID(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -272,7 +272,7 @@ func TestQueuePeekByID(t *testing.T) {
 }
 
 func TestQueueUpdate(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -317,7 +317,7 @@ func TestQueueUpdate(t *testing.T) {
 }
 
 func TestQueueUpdateString(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -362,7 +362,7 @@ func TestQueueUpdateString(t *testing.T) {
 }
 
 func TestQueueUpdateObject(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -510,7 +510,7 @@ func TestQueueUpdateObjectAsJSON(t *testing.T) {
 }
 
 func TestQueueUpdateOutOfBounds(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -546,7 +546,7 @@ func TestQueueUpdateOutOfBounds(t *testing.T) {
 }
 
 func TestQueueEmpty(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -570,7 +570,7 @@ func TestQueueEmpty(t *testing.T) {
 }
 
 func TestQueueOutOfBounds(t *testing.T) {
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		t.Error(err)
@@ -590,7 +590,7 @@ func TestQueueOutOfBounds(t *testing.T) {
 
 func BenchmarkQueueEnqueue(b *testing.B) {
 	// Open test database
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		b.Error(err)
@@ -607,7 +607,7 @@ func BenchmarkQueueEnqueue(b *testing.B) {
 
 func BenchmarkQueueDequeue(b *testing.B) {
 	// Open test database
-	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	file := getTestPath()
 	q, err := OpenQueue(file)
 	if err != nil {
 		b.Error(err)
