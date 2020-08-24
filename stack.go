@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 // Stack is a standard LIFO (last in, first out) stack.
@@ -55,7 +56,7 @@ func OpenStack(dataDir string) (*Stack, error) {
 }
 
 // Push adds an item to the stack.
-func (s *Stack) Push(value []byte) (*Item, error) {
+func (s *Stack) Push(value []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -72,7 +73,7 @@ func (s *Stack) Push(value []byte) (*Item, error) {
 	}
 
 	// Add it to the stack.
-	if err := s.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := s.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
@@ -188,7 +189,7 @@ func (s *Stack) PeekByID(id uint64) (*Item, error) {
 }
 
 // Update updates an item in the stack without changing its position.
-func (s *Stack) Update(id uint64, newValue []byte) (*Item, error) {
+func (s *Stack) Update(id uint64, newValue []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -210,7 +211,7 @@ func (s *Stack) Update(id uint64, newValue []byte) (*Item, error) {
 	}
 
 	// Update this item in the stack.
-	if err := s.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := s.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 // prefixDelimiter defines the delimiter used to separate a prefix from an
@@ -71,7 +72,7 @@ func OpenPrefixQueue(dataDir string) (*PrefixQueue, error) {
 }
 
 // Enqueue adds an item to the queue.
-func (pq *PrefixQueue) Enqueue(prefix, value []byte) (*Item, error) {
+func (pq *PrefixQueue) Enqueue(prefix, value []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
@@ -94,7 +95,7 @@ func (pq *PrefixQueue) Enqueue(prefix, value []byte) (*Item, error) {
 	}
 
 	// Add it to the queue.
-	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := pq.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
@@ -248,7 +249,7 @@ func (pq *PrefixQueue) PeekByIDString(prefix string, id uint64) (*Item, error) {
 }
 
 // Update updates an item in the given queue without changing its position.
-func (pq *PrefixQueue) Update(prefix []byte, id uint64, newValue []byte) (*Item, error) {
+func (pq *PrefixQueue) Update(prefix []byte, id uint64, newValue []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
@@ -276,7 +277,7 @@ func (pq *PrefixQueue) Update(prefix []byte, id uint64, newValue []byte) (*Item,
 	}
 
 	// Update this item in the queue.
-	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := pq.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
@@ -392,7 +393,7 @@ func (pq *PrefixQueue) getOrCreateQueue(prefix []byte) (*queue, error) {
 }
 
 // savePrefixQueue saves the given queue for the given prefix.
-func (pq *PrefixQueue) saveQueue(prefix []byte, q *queue) error {
+func (pq *PrefixQueue) saveQueue(prefix []byte, q *queue, opts ...*opt.WriteOptions) error {
 	// Encode the queue using gob.
 	var buffer bytes.Buffer
 	enc := gob.NewEncoder(&buffer)
@@ -401,14 +402,14 @@ func (pq *PrefixQueue) saveQueue(prefix []byte, q *queue) error {
 	}
 
 	// Save it to the database.
-	return pq.db.Put(generateKeyPrefixData(prefix), buffer.Bytes(), nil)
+	return pq.db.Put(generateKeyPrefixData(prefix), buffer.Bytes(), getOpts(opts))
 }
 
 // save saves the main prefix queue data.
-func (pq *PrefixQueue) save() error {
+func (pq *PrefixQueue) save(opts ...*opt.WriteOptions) error {
 	val := make([]byte, 8)
 	binary.BigEndian.PutUint64(val, pq.size)
-	return pq.db.Put(pq.getDataKey(), val, nil)
+	return pq.db.Put(pq.getDataKey(), val, getOpts(opts))
 }
 
 // getDataKey generates the main prefix queue data key.
