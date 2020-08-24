@@ -2,8 +2,10 @@ package goque
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -1053,6 +1055,133 @@ func TestPriorityQueueOutOfBounds(t *testing.T) {
 	_, err = pq.PeekByOffset(2)
 	if err != ErrOutOfBounds {
 		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
+	}
+}
+
+func TestPriorityQueuePopMidStream(t *testing.T) {
+	type Vector struct {
+		Data string
+	}
+	tmpdir, err := ioutil.TempDir("", "testdb")
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer os.RemoveAll(tmpdir)
+
+	queue, err := OpenPriorityQueue(tmpdir, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+
+	item1 := Vector{Data: "1"}
+	item2 := Vector{Data: "2"}
+	item3 := Vector{Data: "3"}
+
+	if _, err = queue.EnqueueObject(1, item1); err != nil {
+		t.Error(err)
+	}
+	saved2, err := queue.EnqueueObject(1, item2)
+	if err != nil {
+		t.Error(err)
+	}
+	if _, err = queue.EnqueueObject(1, item3); err != nil {
+		t.Error(err)
+	}
+
+	result2, err := queue.DequeueByID(saved2.Priority, saved2.ID)
+	if err != nil {
+		t.Error(err)
+	}
+	result1, err := queue.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+	result3, err := queue.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	var resultItem1, resultItem2, resultItem3 Vector
+	result1.ToObject(&resultItem1)
+	result2.ToObject(&resultItem2)
+	result3.ToObject(&resultItem3)
+
+	if resultItem1.Data != item1.Data {
+		t.Error(resultItem1, " != ", item1.Data)
+	}
+	if resultItem2.Data != item2.Data {
+		t.Error(resultItem1, " != ", item1.Data)
+	}
+	if resultItem3.Data != item3.Data {
+		t.Error(resultItem1, " != ", item1.Data)
+	}
+}
+
+func TestDequeueItems(t *testing.T) {
+	type Vector struct {
+		Data string
+	}
+	tmpdir, err := ioutil.TempDir("", "testdb")
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer os.RemoveAll(tmpdir)
+
+	queue, err := OpenPriorityQueue(tmpdir, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+
+	item1 := Vector{Data: "1"}
+	item2 := Vector{Data: "2"}
+	item3 := Vector{Data: "3"}
+
+	saved1, err := queue.EnqueueObject(1, item1)
+	if err != nil {
+		t.Error(err)
+	}
+	saved2, err := queue.EnqueueObject(1, item2)
+	if err != nil {
+		t.Error(err)
+	}
+	saved3, err := queue.EnqueueObject(1, item3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = queue.DequeueItems([]*PriorityItem{saved1, saved3})
+	if err != nil {
+		t.Error(err)
+	}
+
+	actual, err := queue.Dequeue()
+
+	if !reflect.DeepEqual(actual, saved2) {
+		t.Errorf("got %+v, expected %+v", actual, saved2)
+	}
+}
+
+func TestDequeueItemsEmpty(t *testing.T) {
+	type Vector struct {
+		Data string
+	}
+	tmpdir, err := ioutil.TempDir("", "testdb*")
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer os.RemoveAll(tmpdir)
+
+	queue, err := OpenPriorityQueue(tmpdir, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = queue.DequeueItems(nil)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
