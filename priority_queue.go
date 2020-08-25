@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
@@ -82,7 +83,7 @@ func OpenPriorityQueue(dataDir string, order order) (*PriorityQueue, error) {
 }
 
 // Enqueue adds an item to the priority queue.
-func (pq *PriorityQueue) Enqueue(priority uint8, value []byte) (*PriorityItem, error) {
+func (pq *PriorityQueue) Enqueue(priority uint8, value []byte, opts ...*opt.WriteOptions) (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
@@ -103,7 +104,7 @@ func (pq *PriorityQueue) Enqueue(priority uint8, value []byte) (*PriorityItem, e
 	}
 
 	// Add it to the priority queue.
-	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := pq.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
@@ -264,7 +265,7 @@ func (pq *PriorityQueue) PeekByPriorityID(priority uint8, id uint64) (*PriorityI
 
 // Update updates an item in the priority queue without changing its
 // position.
-func (pq *PriorityQueue) Update(priority uint8, id uint64, newValue []byte) (*PriorityItem, error) {
+func (pq *PriorityQueue) Update(priority uint8, id uint64, newValue []byte, opts ...*opt.WriteOptions) (*PriorityItem, error) {
 	pq.Lock()
 	defer pq.Unlock()
 
@@ -287,7 +288,7 @@ func (pq *PriorityQueue) Update(priority uint8, id uint64, newValue []byte) (*Pr
 	}
 
 	// Update this item in the queue.
-	if err := pq.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := pq.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 

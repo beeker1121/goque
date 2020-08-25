@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 // Queue is a standard FIFO (first in, first out) queue.
@@ -55,7 +56,7 @@ func OpenQueue(dataDir string) (*Queue, error) {
 }
 
 // Enqueue adds an item to the queue.
-func (q *Queue) Enqueue(value []byte) (*Item, error) {
+func (q *Queue) Enqueue(value []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
 
@@ -72,7 +73,7 @@ func (q *Queue) Enqueue(value []byte) (*Item, error) {
 	}
 
 	// Add it to the queue.
-	if err := q.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := q.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
@@ -188,7 +189,7 @@ func (q *Queue) PeekByID(id uint64) (*Item, error) {
 }
 
 // Update updates an item in the queue without changing its position.
-func (q *Queue) Update(id uint64, newValue []byte) (*Item, error) {
+func (q *Queue) Update(id uint64, newValue []byte, opts ...*opt.WriteOptions) (*Item, error) {
 	q.Lock()
 	defer q.Unlock()
 
@@ -210,7 +211,7 @@ func (q *Queue) Update(id uint64, newValue []byte) (*Item, error) {
 	}
 
 	// Update this item in the queue.
-	if err := q.db.Put(item.Key, item.Value, nil); err != nil {
+	if err := q.db.Put(item.Key, item.Value, getOpts(opts)); err != nil {
 		return nil, err
 	}
 
