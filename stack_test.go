@@ -1,6 +1,7 @@
 package goque
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -586,6 +587,49 @@ func TestStackOutOfBounds(t *testing.T) {
 	if err != ErrOutOfBounds {
 		t.Errorf("Expected to get stack out of bounds error, got %s", err.Error())
 	}
+}
+
+func TestCompactStack(t *testing.T) {
+
+	// open our new queuedb
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	s, err := OpenStack(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Drop()
+
+	// create a new struct that we are going to store in the queue
+	var myStruct struct {
+		data []byte
+	}
+
+	// give some size to the struct such that we can have many ldb files
+	// during the pushing
+	myStruct.data = bytes.Repeat([]byte{10}, 1000*1024)
+	for i := 0; i < 1000; i++ {
+		_, err = s.PushObject(myStruct.data)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	// pop all of our struct
+	// this will cause that after the ldb files
+	// to stay still on disk
+	for i := 0; i < 1000; i++ {
+		_, err = s.Pop()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Compact db to remove unused ldb files from disk
+	err = s.CompactStack()
+	if err != nil {
+		t.Error(err)
+	}
+
 }
 
 func BenchmarkStackPush(b *testing.B) {
