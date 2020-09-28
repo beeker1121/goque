@@ -213,6 +213,50 @@ func TestPriorityQueueDequeueByPriority(t *testing.T) {
 	}
 }
 
+func TestPriorityQueueEncodeDecodePointerJSON(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, DESC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	type subObject struct {
+		Value *int
+	}
+
+	type object struct {
+		Value     int
+		SubObject subObject
+	}
+
+	val := 0
+	obj := object{
+		Value: 0,
+		SubObject: subObject{
+			Value: &val,
+		},
+	}
+
+	if _, err = pq.EnqueueObjectAsJSON(0, obj); err != nil {
+		t.Error(err)
+	}
+
+	item, err := pq.Dequeue()
+	if err != nil {
+		t.Error(err)
+	}
+
+	var itemObj object
+	if err := item.ToObjectFromJSON(&itemObj); err != nil {
+		t.Error(err)
+	}
+
+	if *itemObj.SubObject.Value != 0 {
+		t.Errorf("Expected object subobject value to be '0', got '%v'", *itemObj.SubObject.Value)
+	}
+}
+
 func TestPriorityQueuePeek(t *testing.T) {
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
 	pq, err := OpenPriorityQueue(file, ASC)
@@ -749,6 +793,106 @@ func TestPriorityQueueUpdateObject(t *testing.T) {
 
 	if obj != newCompObj {
 		t.Errorf("Expected new object to be '%+v', got '%+v'", newCompObj, obj)
+	}
+}
+
+func TestPriorityQueueUpdateObjectAsJSON(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	type subObject struct {
+		Value *int
+	}
+
+	type object struct {
+		Priority  uint8
+		Value     int
+		SubObject subObject
+	}
+
+	for p := 0; p <= 4; p++ {
+		for i := 1; i <= 10; i++ {
+			obj := object{
+				Priority: uint8(p),
+				Value:    i,
+				SubObject: subObject{
+					Value: &i,
+				},
+			}
+
+			if _, err = pq.EnqueueObjectAsJSON(uint8(p), obj); err != nil {
+				t.Error(err)
+			}
+		}
+	}
+
+	item, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oldCompObjVal := 3
+	oldCompObj := object{
+		Priority: 0,
+		Value:    3,
+		SubObject: subObject{
+			Value: &oldCompObjVal,
+		},
+	}
+	newCompObjVal := 33
+	newCompObj := object{
+		Priority: 0,
+		Value:    33,
+		SubObject: subObject{
+			Value: &newCompObjVal,
+		},
+	}
+
+	var obj object
+	if err := item.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *oldCompObj.SubObject.Value {
+		t.Errorf("Expected object subobject value to be '%+v', got '%+v'", *oldCompObj.SubObject.Value, *obj.SubObject.Value)
+	}
+
+	updatedItem, err := pq.UpdateObjectAsJSON(item.Priority, item.ID, newCompObj)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if updatedItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", item.Priority)
+	}
+
+	if err := updatedItem.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *newCompObj.SubObject.Value {
+		t.Errorf("Expected current object subobject value to be '%+v', got '%+v'", *newCompObj.SubObject.Value, *obj.SubObject.Value)
+	}
+
+	newItem, err := pq.PeekByPriorityID(0, 3)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if newItem.Priority != 0 {
+		t.Errorf("Expected priority level to be 0, got %d", newItem.Priority)
+	}
+
+	if err := newItem.ToObjectFromJSON(&obj); err != nil {
+		t.Error(err)
+	}
+
+	if *obj.SubObject.Value != *newCompObj.SubObject.Value {
+		t.Errorf("Expected current object subobject value to be '%+v', got '%+v'", *newCompObj.SubObject.Value, *obj.SubObject.Value)
 	}
 }
 
