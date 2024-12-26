@@ -7,7 +7,7 @@ Motivation for creating this project was the need for a persistent priority queu
 Instead of using an in-memory heap structure to store data, everything is stored using the [Go port of LevelDB](https://github.com/syndtr/goleveldb). This results in very little memory being used no matter the size of the database, while read and write performance remains near constant.
 
 > [!CAUTION]
-> This project uses the Go port of LevelDB, which may not be production safe. The author of this project has used this package in production and has experienced extreme database slowdown. If used in production, please make sure you make regular backups and test recovery should need the arise.
+> This project uses the Go port of LevelDB, which may not be production safe. The author of this project has used this package in production and has experienced extreme database slowdown. If used in production, please make sure to make regular backups and test recovery should the need arise.
 
 ## Features
 
