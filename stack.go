@@ -256,6 +256,8 @@ func (s *Stack) UpdateObjectAsJSON(id uint64, newValue interface{}) (*Item, erro
 
 // Length returns the total number of items in the stack.
 func (s *Stack) Length() uint64 {
+	s.RLock()
+	defer s.RUnlock()
 	return s.head - s.tail
 }
 
@@ -295,7 +297,7 @@ func (s *Stack) Drop() error {
 // getItemByID returns an item, if found, for the given ID.
 func (s *Stack) getItemByID(id uint64) (*Item, error) {
 	// Check if empty or out of bounds.
-	if s.Length() == 0 {
+	if s.head-s.tail == 0 {
 		return nil, ErrEmpty
 	} else if id <= s.tail || id > s.head {
 		return nil, ErrOutOfBounds
