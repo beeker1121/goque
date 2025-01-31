@@ -211,6 +211,51 @@ func (pq *PriorityQueue) DequeueByPriority(priority uint8) (*PriorityItem, error
 	return item, nil
 }
 
+func (pq *PriorityQueue) DequeueByID(priority uint8, id uint64) (*PriorityItem, error) {
+	pq.Lock()
+	defer pq.Unlock()
+
+	// Check if queue is closed.
+	if !pq.isOpen {
+		return nil, ErrDBClosed
+	}
+
+	item := &PriorityItem{ID: id, Priority: priority, Key: pq.generateKey(priority, id)}
+
+	var err error
+	if item.Value, err = pq.db.Get(item.Key, nil); err != nil {
+		return nil, err
+	}
+
+	if err = pq.db.Delete(item.Key, nil); err != nil {
+		return nil, err
+	}
+
+	// Increment head position if this happens to be the first one
+	if id == pq.levels[priority].head+1 {
+		pq.levels[priority].head++
+	}
+
+	return item, nil
+
+}
+
+// DequeueItems dequeue's a slice of items inside a transaction so either
+// they are all deleted, or none are deleted
+func (pq *PriorityQueue) DequeueItems(items []*PriorityItem) error {
+	trans, err := pq.db.OpenTransaction()
+	if err != nil {
+		return err
+	}
+	defer trans.Discard()
+	for _, item := range items {
+		if err := trans.Delete(item.Key, nil); err != nil {
+			return err
+		}
+	}
+	return trans.Commit()
+}
+
 // Peek returns the next item in the priority queue without removing it.
 func (pq *PriorityQueue) Peek() (*PriorityItem, error) {
 	pq.RLock()
@@ -479,7 +524,20 @@ func (pq *PriorityQueue) getNextItem() (*PriorityItem, error) {
 	}
 
 	// Try to get the next item in the current priority level.
-	return pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+1)
+	// Items may have been removed from inside the queue so if we get an error
+	// increment head until we get something valid
+	for {
+		result, err := pq.getItemByPriorityID(pq.curLevel, pq.levels[pq.curLevel].head+1)
+		if err == nil {
+			return result, nil
+		}
+		// If we've iterated the whole way through... we have to give up
+		if pq.levels[pq.curLevel].head > pq.levels[pq.curLevel].tail {
+			return result, err
+		}
+		// This item was deleted, move on to the next one!
+		pq.levels[pq.curLevel].head++
+	}
 }
 
 // getItemByID returns an item, if found, for the given ID.
