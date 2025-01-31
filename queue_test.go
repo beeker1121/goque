@@ -1,6 +1,7 @@
 package goque
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -586,6 +587,49 @@ func TestQueueOutOfBounds(t *testing.T) {
 	if err != ErrOutOfBounds {
 		t.Errorf("Expected to get queue out of bounds error, got %s", err.Error())
 	}
+}
+
+func TestCompactQueue(t *testing.T) {
+
+	// open our new queuedb
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	q, err := OpenQueue(file)
+	if err != nil {
+		t.Error(err)
+	}
+	defer q.Drop()
+
+	// create a new struct that we are going to store in the queue
+	var myStruct struct {
+		data []byte
+	}
+
+	// give some size to the struct such that we can have many ldb files
+	// during the enqueueing
+	myStruct.data = bytes.Repeat([]byte{10}, 1000*1024)
+	for i := 0; i < 1000; i++ {
+		_, err = q.EnqueueObject(myStruct.data)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	// dequeue all of our struct
+	// this will cause that after the ldb files
+	// to stay still on disk
+	for i := 0; i < 1000; i++ {
+		_, err = q.Dequeue()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Compact db to remove unused ldb files from disk
+	err = q.CompactQueue()
+	if err != nil {
+		t.Error(err)
+	}
+
 }
 
 func BenchmarkQueueEnqueue(b *testing.B) {

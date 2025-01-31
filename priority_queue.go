@@ -379,6 +379,24 @@ func (pq *PriorityQueue) Drop() error {
 	return os.RemoveAll(pq.DataDir)
 }
 
+// CompactQueue compacts the underlying DB for the given key range
+// should only used by users who know what they are doing
+func (pq *PriorityQueue) CompactQueue() error {
+	var err error
+
+	// we need to compact the entire range on level db
+	myrange := util.Range{
+		Start: nil,
+		Limit: nil,
+	}
+
+	err = pq.db.CompactRange(myrange)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 // cmpAsc returns wehther the given priority level is higher than the
 // current priority level based on ascending order.
 func (pq *PriorityQueue) cmpAsc(priority uint8) bool {
