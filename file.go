@@ -3,6 +3,9 @@ package goque
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 // goqueType defines the type of Goque data structure used.
@@ -16,6 +19,10 @@ const (
 	goquePriorityQueue
 	goquePrefixQueue
 )
+
+// levelDbOpener is a function type matching both
+// leveldb.OpenFile() and leveldb.Recover().
+type levelDbOpener func(string, *opt.Options) (*leveldb.DB, error)
 
 // checkGoqueType checks if the type of Goque data structure
 // trying to be opened is compatible with the opener type.

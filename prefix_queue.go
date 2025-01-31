@@ -40,7 +40,21 @@ type PrefixQueue struct {
 
 // OpenPrefixQueue opens a prefix queue if one exists at the given directory.
 // If one does not already exist, a new prefix queue is created.
+// If the underlying database is corrupt, an error for which
+// IsCorrupted() returns true is returned.
 func OpenPrefixQueue(dataDir string) (*PrefixQueue, error) {
+	return openPrefixQueue(dataDir, leveldb.OpenFile)
+}
+
+// RecoverPrefixQueue attempts to recover a corrupt prefix queue.
+func RecoverPrefixQueue(dataDir string) (*PrefixQueue, error) {
+	return openPrefixQueue(dataDir, leveldb.RecoverFile)
+}
+
+// openPrefixQueue opens a prefix queue if one exists at the given directory
+// using the specified opener.
+// If one does not already exist, a new prefix queue is created.
+func openPrefixQueue(dataDir string, open levelDbOpener) (*PrefixQueue, error) {
 	var err error
 
 	// Create a new Queue.
@@ -51,7 +65,7 @@ func OpenPrefixQueue(dataDir string) (*PrefixQueue, error) {
 	}
 
 	// Open database for the prefix queue.
-	pq.db, err = leveldb.OpenFile(dataDir, nil)
+	pq.db, err = open(dataDir, nil)
 	if err != nil {
 		return nil, err
 	}

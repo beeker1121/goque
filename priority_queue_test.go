@@ -1056,6 +1056,34 @@ func TestPriorityQueueOutOfBounds(t *testing.T) {
 	}
 }
 
+func TestPriorityQueueRecover(t *testing.T) {
+	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())
+	pq, err := OpenPriorityQueue(file, ASC)
+	if err != nil {
+		t.Error(err)
+	}
+	defer pq.Drop()
+
+	_, err = pq.EnqueueString(0, "value for item")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err = pq.Close(); err != nil {
+		t.Error(err)
+	}
+	if err = os.Remove(file + "/MANIFEST-000000"); err != nil {
+		t.Error(err)
+	}
+
+	if pq, err = OpenPriorityQueue(file, ASC); !IsCorrupted(err) {
+		t.Errorf("Expected corruption error, got %s", err)
+	}
+	if pq, err = RecoverPriorityQueue(file, ASC); err != nil {
+		t.Error(err)
+	}
+}
+
 func BenchmarkPriorityQueueEnqueue(b *testing.B) {
 	// Open test database
 	file := fmt.Sprintf("test_db_%d", time.Now().UnixNano())

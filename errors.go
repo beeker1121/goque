@@ -2,6 +2,8 @@ package goque
 
 import (
 	"errors"
+
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 var (
@@ -21,3 +23,9 @@ var (
 	// its underlying database.
 	ErrDBClosed = errors.New("goque: Database is closed")
 )
+
+// IsCorrupted returns a boolean indicating whether the error is indicating
+// a corruption.
+func IsCorrupted(err error) bool {
+	return ldberrors.IsCorrupted(err)
+}

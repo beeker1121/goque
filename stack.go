@@ -22,7 +22,21 @@ type Stack struct {
 
 // OpenStack opens a stack if one exists at the given directory. If one
 // does not already exist, a new stack is created.
+// If the underlying database is corrupt, an error for which
+// IsCorrupted() returns true is returned.
 func OpenStack(dataDir string) (*Stack, error) {
+	return openStack(dataDir, leveldb.OpenFile)
+}
+
+// RecoverStack attempts to recover a corrupt stack.
+func RecoverStack(dataDir string) (*Stack, error) {
+	return openStack(dataDir, leveldb.RecoverFile)
+}
+
+// openStack opens a stack if one exists at the given directory
+// using the specified opener. If one
+// does not already exist, a new stack is created.
+func openStack(dataDir string, open levelDbOpener) (*Stack, error) {
 	var err error
 
 	// Create a new Stack.
@@ -35,7 +49,7 @@ func OpenStack(dataDir string) (*Stack, error) {
 	}
 
 	// Open database for the stack.
-	s.db, err = leveldb.OpenFile(dataDir, nil)
+	s.db, err = open(dataDir, nil)
 	if err != nil {
 		return s, err
 	}

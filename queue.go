@@ -22,7 +22,21 @@ type Queue struct {
 
 // OpenQueue opens a queue if one exists at the given directory. If one
 // does not already exist, a new queue is created.
+// If the underlying database is corrupt, an error for which
+// IsCorrupted() returns true is returned.
 func OpenQueue(dataDir string) (*Queue, error) {
+	return openQueue(dataDir, leveldb.OpenFile)
+}
+
+// RecoverQueue attempts to recover a corrupt queue.
+func RecoverQueue(dataDir string) (*Queue, error) {
+	return openQueue(dataDir, leveldb.RecoverFile)
+}
+
+// openQueue opens a queue if one exists at the given directory
+// using the specified opener. If one
+// does not already exist, a new queue is created.
+func openQueue(dataDir string, open levelDbOpener) (*Queue, error) {
 	var err error
 
 	// Create a new Queue.
@@ -35,7 +49,7 @@ func OpenQueue(dataDir string) (*Queue, error) {
 	}
 
 	// Open database for the queue.
-	q.db, err = leveldb.OpenFile(dataDir, nil)
+	q.db, err = open(dataDir, nil)
 	if err != nil {
 		return q, err
 	}
